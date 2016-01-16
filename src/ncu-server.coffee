@@ -1,7 +1,11 @@
 ###*
+  Listens for Dock connections from Newton Devices, starts Dock Sessions for
+  new connections
 @class NcuServer
 ###
-net = require 'net'
+net               = require 'net'
+
+DockSession       = require './dock-session'
 
 module.exports = class NcuServer
   
@@ -29,6 +33,7 @@ module.exports = class NcuServer
     @_initialize()
 
   ###*
+    all init method go here
   @method initialize
   ###
   _initialize: ->
@@ -36,6 +41,7 @@ module.exports = class NcuServer
     @_initNetServer()
   
   ###*
+    init TCP server listening for connections
   @method initNetServer
   ###
   _initNetServer: ->
@@ -46,40 +52,22 @@ module.exports = class NcuServer
     console.log "NCU server listening connections at port #{@newtonPort}"
   
   ###*
+    new client connection handler. Creates a new session object. all session
+    logic is handled inside
   @method newConnection
   ###
   _newConnection: (socket) =>
     console.log "new connection from #{socket.remoteAddress}"
-    @_connections.push socket
     
-    socket.on 'data', (data) =>
-      @_dataReceived(socket,data)
+    # Create a session object
+    sessionObj = new DockSession
+      socket: socket
     
-    socket.on 'end', =>
-      @_connections.splice(@_connections.indexOf(socket), 1)
+    # push to connections queue  
+    @_connections.push sessionObj
+   
+    # on socket destroy remove from connection queue
+    socket.on 'close', =>
+      @_connections.splice(@_connections.indexOf(sessionObj), 1)
   
-  ###*
-  @method dataReceived
-  ###
-  _dataReceived: (socket, data) ->
-    console.log data
-    
-    # fake a kDInitiateDocking response to a kDRequestToDock event
-    StringDecoder = require('string_decoder').StringDecoder
-    decoder = new StringDecoder('ascii')
-    message = decoder.write(data)
-    if message.substr(0,12) == "newtdockrtdk"
-      setTimeout ->
-        console.log "send dock response..."
-        socket.write('newtdockdock\0\0\0\x04\0\0\0\x02')
-      ,1000
-  
-  ###*
-  @method sendCommand 
-  ###
-  sendCommand: (socket, command, data) ->
-    if sessionMessages[command]?
-      commandMessage = sessionMessages[command](data)
-      socket.write(commandMessage)
-    else
-      console.warn "unrecognized command '#{command}'"
+      

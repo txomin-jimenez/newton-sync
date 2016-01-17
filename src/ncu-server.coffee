@@ -4,10 +4,15 @@
 @class NcuServer
 ###
 net               = require 'net'
+EventEmitter      = require('events').EventEmitter
+_                 = require 'lodash'
 
 DockSession       = require './dock-session'
 
 module.exports = class NcuServer
+  
+  # event emit capability
+  _.extend @prototype, EventEmitter.prototype
   
   ###*
   @property newtonPort
@@ -20,7 +25,7 @@ module.exports = class NcuServer
   _netServer: null
   
   ###*
-  @property _connections
+  @property connections
   ###
   _connections: null
 
@@ -45,7 +50,7 @@ module.exports = class NcuServer
   @method initNetServer
   ###
   _initNetServer: ->
-    @_connections = []
+    @_connections = {}
     @_netServer = net.createServer @_newConnection
     @_netServer.listen @newtonPort, '0.0.0.0'
     
@@ -57,17 +62,46 @@ module.exports = class NcuServer
   @method newConnection
   ###
   _newConnection: (socket) =>
-    console.log "new connection from #{socket.remoteAddress}"
-    
+    connId = socket.remoteAddress + "_" + (new Date().getTime())
+    console.log "new connection #{connId}"
+
     # Create a session object
     sessionObj = new DockSession
       socket: socket
     
     # push to connections queue  
-    @_connections.push sessionObj
+    @_connections[connId] = sessionObj
    
     # on socket destroy remove from connection queue
     socket.on 'close', =>
-      @_connections.splice(@_connections.indexOf(sessionObj), 1)
+      console.log "connection #{connId} closed"
+      delete @_connections?[connId]
   
+  connectionsCount: ->
+    _.size(@_connections)
       
+  ###*
+  @method dispose
+  ###
+  dispose: ->
+
+    return if @disposed
+
+    @emit 'dispose', this
+    
+    @removeAllListeners()
+    
+    for session in @_connections
+      session.dispose()
+
+    properties = [
+      '_connections',
+      '_netServer'
+    ]
+
+    delete this[prop] for prop in properties
+    
+    @disposed = true
+
+    # You’re frozen when your heart’s not open.
+    Object.freeze? this

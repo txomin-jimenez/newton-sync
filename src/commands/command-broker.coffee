@@ -6,15 +6,9 @@
 _                 = require 'lodash'
 Q                 = require 'q'
 
-StateMachine      = require './state-machine'
+EventCommand      = require './event-command'
 
 module.exports =
-
-  ###*
-    TCP socket for device comms
-  @property socket
-  ###
-  socket: null
   
   ###*
     check for socket property. checked before send or receive

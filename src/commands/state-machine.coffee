@@ -74,9 +74,9 @@ StateMachine =
     return
 
 # event emit capability
-_.extend StateMachine, EventEmitter
+_.extend StateMachine, EventEmitter.prototype
 
 # You’re frozen when your heart’s not open.
-Object.freeze? SyncMachine
+Object.freeze? StateMachine
 
 module.exports = StateMachine

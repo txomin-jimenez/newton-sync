@@ -61,7 +61,12 @@ module.exports = class NewtonDevice
   fSerialNumber: null
   fTargetProtocol:null
 
-
+  ###*
+    TCP socket for device comms
+  @property socket
+  ###
+  socket: null
+ 
   ###*
   @class NewtonDevice
   @constructor

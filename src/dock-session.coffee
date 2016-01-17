@@ -8,8 +8,15 @@
 _                 = require 'lodash'
 
 CommandBroker     = require './commands/command-broker'
+StateMachine      = require './commands/state-machine'
 
 module.exports = class DockSession
+  
+  ###*
+    TCP socket for device comms
+  @property socket
+  ###
+  socket: null
   
   ###*
     Default timeout in seconds if no comms acivity
@@ -46,11 +53,13 @@ module.exports = class DockSession
     all init method go here
   @method initialize
   ###
-  _initialize: (options)->
+  _initialize: (options) ->
     
     @socket.on 'end', =>
       @endSession()
    
+    @initSession()
+  
   ###*
     initiates session negotiation with Newton device
       Every session starts like this:
@@ -138,11 +147,13 @@ module.exports = class DockSession
 
     return if @disposed
 
-    @trigger 'dispose', this
+    @emit 'dispose', this
     
+    @removeAllListeners()
+
     @newtonDevice?.dispose()
     
-    @socketConnection.destroy()
+    @socket?.destroy()
     
     properties = [
       'socketConnection',

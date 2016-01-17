@@ -11,7 +11,7 @@ module.exports = (grunt) ->
           ext: '.js'
         }]
     coffeelint:
-      lib: ['src/*.coffee']
+      lib: ['src/**/*.coffee']
     # just run jshint for tests only because src is coffee
     jshint:
       files: [
@@ -23,13 +23,15 @@ module.exports = (grunt) ->
         module: true
         node: true
     watch:
-      files: ['src/*.coffee', 'test/*.js']
+      files: ['src/**/*.coffee', 'test/**/*.js']
       tasks: [
         'coffee'
         'jshint'
         'simplemocha'
       ]
     simplemocha:
+      options:
+        fullTrace: true
       all:
         src: ['test/**/*.js', '**/*.spec.js']
 

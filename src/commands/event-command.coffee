@@ -20,34 +20,83 @@
   general form. For simplicity, they are not included or implemented here
 @class EventCommand
 ###
-
+path              = require 'path'
 _                 = require 'lodash'
+EventEmitter      = require('events').EventEmitter
+recursiveReadSync = require 'recursive-readdir-sync'
+
+Utils             = require '../utils'
+
+#######################################################################
+#  Dynamically load all command classes
+#  factory methods will parse input to this object to produce correct
+#  instances.
+dockCommands = {}
+
+loadCommClasses = ->
+  return if _.size(dockCommands) > 0
+  recursiveReadSync(__dirname).forEach (commandFilename) ->
+    try
+      commandClass = require commandFilename
+      if commandClass.id?
+        # index class by id and name
+        dockCommands[commandClass.id] = commandClass
+        dockCommands[commandClass.prototype.name] = commandClass
+    catch err
+      console.log "error loading event class: #{commandFilename}:"
+      console.log err
+#
+#######################################################################
 
 module.exports = class EventCommand
   
+  @_dockCommands = dockCommands
+
+  # event emit feature
+  _.extend EventCommand, EventEmitter.prototype
+  
   ###*
-    generate a command from data (usually from app data)
+    generate a command from JSON data (usually from app data)
   @method parse
   @static
   ###
   @parse: (command, data) ->
+    loadCommClasses() # load classes if needed
+    # command accepts id or name
+    commClass = dockCommands[command]
+    if not commClass?
+      console.warn "#{command} command not implemented!"
+      commClass = EventCommand
     
     opts =
-      id: null
-      name: null
-      length: null
-      data: null
+      data: data
     
-    new EventCommand opts
+    new commClass opts
+  
   ###*
     generate a command from data buffer received (usually from Newton)
   @method parseFromBinary
   @static
   ###
   @parseFromBinary: (buffer) ->
+    loadCommClasses() # load classes if needed
     console.log buffer
-    opts = null
-    new EventCommand opts
+    commId = Utils.protocol.getCommandId(buffer)
+    # get correct class from events object
+    commClass = dockCommands[commId]
+    if not commClass?
+      console.warn "#{commId} command not implemented!"
+      commClass = EventCommand
+    
+    # slice data section of command message
+    data = buffer.slice(12)
+
+    opts =
+      id: commId
+      name: commClass.prototype.name
+      data: data
+    new commClass opts
+  
   ###*
     specific command (4 letter) id ex: 'sync', 'cres'
   @property id
@@ -67,11 +116,11 @@ module.exports = class EventCommand
   length: null
   
   ###*
-    payload data if an  payload data if any
+    payload data if any
   @property data
   ###
   data: null
-
+  
   ###*
   @class EventCommand
   @constructor
@@ -83,8 +132,50 @@ module.exports = class EventCommand
         'id'
         'name'
         'length'
-        'data'
       ]
+    
+      # parse binary data to JSON if command is received from Newton device  
+      if options.data instanceof Buffer
+        @dataFromBinary(options.data)
+      else
+        # set JSON data object.
+        @data = options.data
+
+  ###*
+    create a binary buffer representation of Command according to specification
+    this buffer can be sent to device
+  @method toBinary
+  ###
+  toBinary: ->
+    commandBuffer = new Buffer(12)
+    # Write header. All commands have same header
+    commandBuffer.write("newtdock",0,"ascii")
+    # Write command code
+    commandBuffer.write(@id,8,"ascii")
+    # serialize binary representation of command data
+    dataBuffer = @dataToBinary()
+    # concat two buffers in one as result
+    Buffer.concat [commandBuffer, dataBuffer]
+  
+  ###*
+    create a binary buffer representation of data.
+    each command will extened this class and implement as appropiate
+    usually only Dock --to--> Newton commands will implement it
+  @method dataToBinary
+  ###
+  dataToBinary: ->
+    # this boilerplate sets 0 as data payload 
+    data = new Buffer(4)
+    data.writeUInt32BE(0,0)
+  
+  ###*
+    converts binary data to JSON.
+    each command will extened this class and implement as appropiate
+    usually only Newton --to--> Dock commands will implement it
+  @method dataFromBinary
+  ###
+  dataFromBinary: (dataBuffer) ->
+    {}
 
   ###*
   @method dispose
@@ -96,7 +187,7 @@ module.exports = class EventCommand
     @emit 'dispose', this
     
     properties = [
-      'data',
+      'data'
     ]
 
     delete this[prop] for prop in properties

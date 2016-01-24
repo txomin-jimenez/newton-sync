@@ -26,8 +26,12 @@ module.exports =
   ###
   sendCommand: (command, data) ->
     @_checkSocket()
+    console.log "send command #{command}"
     command = EventCommand.parse command, data
-    @socket.write(command.toBinary())
+    console.log command
+    data_ = command.toBinary()
+    console.log data_
+    @socket.write(data_)
 
   ###*
     waits for a specific command from Newton device to arrive
@@ -38,10 +42,12 @@ module.exports =
     @_checkSocket()
     deferred = Q.defer()
 
+    console.log "waiting for #{commandName}"
     @socket.once 'data', (data) =>
       command = EventCommand.parseFromBinary(data)
       if commandName in [command.name, command.id]
-        deferred.resolve command
+        console.log "#{commandName} received"
+        deferred.resolve command.data
 
     deferred.promise
   

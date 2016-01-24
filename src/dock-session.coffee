@@ -6,12 +6,23 @@
 ###
 
 _                 = require 'lodash'
-
 CommandBroker     = require './commands/command-broker'
 StateMachine      = require './commands/state-machine'
+Utils             = require './utils'
+Enum              = Utils.Enum
 
 module.exports = class DockSession
   
+  @sessionTypes = Enum(
+    'kNoSession'
+    'kSettingUpSession'
+    'kSynchronizeSession'
+    'kRestoreSession'
+    'kLoadPackageSession'
+    'kTestCommSession'
+    'kLoadPatchSession'
+    'kUpdatingStoresSession'
+  )
   ###*
     TCP socket for device comms
   @property socket
@@ -78,10 +89,8 @@ module.exports = class DockSession
   initSession: ->
     
     @processBegin()
-
-    @receiveCommand('kDRequestToDock')
-    .then =>
-      @sendCommand('kDInitiateDocking')
+    
+    @_initDockSession()
     .then =>
       @_exchangeDevicesInfo()
     .then =>
@@ -96,6 +105,19 @@ module.exports = class DockSession
       @processFinish()
     .catch (error) =>
       @processFinish(error)
+  
+  ###*
+    waits for device request and sends initiate docking as response
+  @method initDockSession
+  ###
+  _initDockSession: ->
+    @receiveCommand('kDRequestToDock')
+    .then (protocolVersion) =>
+      console.log "..."
+      console.log protocolVersion
+      # send session type
+      sessionType = DockSession.sessionTypes.kSynchronizeSession
+      @sendCommand('kDInitiateDocking',{sessionType: sessionType})
   
   ###*
     send desktop info a save received Newton Device info

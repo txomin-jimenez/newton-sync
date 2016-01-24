@@ -18,26 +18,26 @@ describe('Dock Session', function( done ) {
       });
     });
     
+    it('should send a response to a event', function(done) {
+      done();
+    });
+    
     it('should initiate docking on dock request from Newton', function(done) {
       // simulate a kDRequestToDock event from Newton to Server
-      client.write("newtdockrtdk\0\0\0\4\0\0\0\9"); 
+      // data length is 4 bytes and data is protocol version number 9
+      testBuff = new Buffer(20);
+      testBuff.write("newtdockrtdk",0,"ascii");
+      testBuff.writeUInt32BE(4,12);      
+      testBuff.writeUInt32BE(9,16);      
+      client.write(testBuff);
       client.on('data', function(data) {
         var decoder = new StringDecoder('ascii');
         data_ = decoder.write(data);
         expect(data_.substr(0,12)).to.equal("newtdockdock");
         done();
       });
-      done();
     });
     
-    it('should send a response to a event', function(done) {
-      done();
-    });
-    
-    it('should negotiate a session initiation', function(done) {
-      done();
-    });
-
     after(function() {
       client.end();
     });

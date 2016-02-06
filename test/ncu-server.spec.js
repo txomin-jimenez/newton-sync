@@ -24,6 +24,7 @@ describe('NCU Server', function( done ) {
     });
     
     it('should queue connections', function(done) {
+      // check previous test connection
       expect(testServer.connectionsCount()).to.equal(1);   
       // disconnect client for next test case
       client.on('close', function() {

@@ -10,6 +10,7 @@ CommandBroker     = require './commands/command-broker'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 Enum              = Utils.Enum
+ByteEnum          = Utils.ByteEnum
 
 NewtonDevice      = require './newton-device'
 
@@ -25,6 +26,15 @@ module.exports = class DockSession
     'kTestCommSession'
     'kLoadPatchSession'
     'kUpdatingStoresSession'
+  )
+  # dock app icons mask
+  @dockIcons = ByteEnum(
+    'kBackupIcon'   #= 1,
+    'kRestoreIcon'  # = 1 << 1,
+    'kInstallIcon'  # = 1 << 2,
+    'kImportIcon'   # = 1 << 3,
+    'kSyncIcon'     # = 1 << 4,
+    'kKeyboardIcon' # = 1 << 5
   )
   ###*
     TCP socket for device comms
@@ -107,7 +117,9 @@ module.exports = class DockSession
       # app at Newton Device or Dock could start sync process.
       @processFinish()
     .catch (error) =>
-      console.error error
+      console.log "init session error"
+      console.log error
+      console.trace()
       @processFinish(error)
   
   ###*
@@ -140,7 +152,9 @@ module.exports = class DockSession
     .then =>
       @receiveCommand('kDNewtonInfo')
     .then (newtonInfo) =>
-      # TO-DO: save some protocol and session params
+      # TO-DO: save encrypted keys and protocol version for later check
+      console.log "newton info: "
+      console.log newtonInfo
   
   ###*
     Info used to communicate with newton device. we send this info in session
@@ -170,6 +184,7 @@ module.exports = class DockSession
   @method setDockIcons
   ###
   _setDockIcons: ->
+    whichIcons = DockSession.dockIcons.kSyncIcon + DockSession.dockIcons.kRestoreIcon
 
     @sendCommand('kDWhichIcons', whichIcons)
     .then =>
@@ -182,6 +197,9 @@ module.exports = class DockSession
   _negotiatePassword: ->
 
     @receiveCommand('kDPassword')
+    .then (receivedKeys) =>
+      console.log receivedKeys
+      @sendCommand('kDResult',0)
   
   ###*
   @method endSession

@@ -18,10 +18,12 @@ module.exports = (grunt) ->
         'Gruntfile.js'
         'test/**/*.js'
       ]
-      options: globals:
-        console: true
-        module: true
-        node: true
+      options:
+        esversion: 6
+        globals:
+          console: true
+          module: true
+          node: true
     watch:
       files: ['src/**/*.coffee', 'test/**/*.js']
       tasks: [

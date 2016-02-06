@@ -1,5 +1,3 @@
-EventCommand        = require '../event-command'
-
 ###*
 kDDesktopInfo
 
@@ -80,7 +78,7 @@ module.exports = class kDDesktopInfo extends EventCommand
     lengthBuff.writeUInt32BE(data.length+desktopAppsData.length,0)
     
     # TO-DO: don't know why but whe must terminate de buffer with 0 0
-    # or Newton wont recognize it. Probably a byte padding?
+    # or Newton wont recognize it. Probably a byte padding? or terminator
     Buffer.concat [lengthBuff,data,desktopAppsData,new Buffer([0x00,0x00])]
 
   dataFromBinary: (dataBuffer) ->

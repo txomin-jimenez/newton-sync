@@ -1,5 +1,3 @@
-EventCommand        = require '../event-command'
-
 ###*
 kDRequestToDock
 

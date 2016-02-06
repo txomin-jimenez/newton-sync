@@ -3,6 +3,7 @@
 var path = require( 'path' );
 var newtonSync = require( path.resolve( path.join( __dirname, '..' ) ) );
 var NcuServer = newtonSync.NcuServer;
+var FakeNewton = require('./fixtures/fake-newton');
 var expect = require( 'chai' ).expect;
 var net = require('net');
 var StringDecoder = require('string_decoder').StringDecoder;

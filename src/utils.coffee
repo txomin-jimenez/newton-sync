@@ -29,6 +29,23 @@ module.exports =
       i++
     self
  
+  # Creates enum - like type. This time for byte shift mask values. used in
+  # dock session icons enum
+  ByteEnum: ->
+    values = arguments
+    # get the varargs and save them to a 'values' variable.
+    self =
+      all: []
+      keys: values
+    i = 0
+    while i < values.length
+      self[values[i]] = 1 << i
+      # add the variable to this object
+      self.all[1 << i] = i
+      # add the index to the list of all indices
+      i++
+    self
+  
   unichar:
 
     toString: (uniCharBuff)->

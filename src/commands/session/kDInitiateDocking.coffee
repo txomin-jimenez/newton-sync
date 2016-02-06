@@ -1,5 +1,3 @@
-EventCommand        = require '../event-command'
-
 ###*
 kDInitiateDocking
 
@@ -13,7 +11,7 @@ The session type can be one of {none, settingUp, synchronize, restore,
 loadPackage, testComm, loadPatch, updatingStores}; see the Session type enum 
 in DockSession. The Newton responds with information about itself.
 ###
-EventCommand      = require '../event-command'
+EventCommand        = require '../event-command'
 
 module.exports = class kDInitiateDocking extends EventCommand
   

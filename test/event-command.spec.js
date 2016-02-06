@@ -11,18 +11,14 @@ var _ = require('lodash');
 describe('Event Command', function( done ) {
     var client = null;
 
-    //before(function() {
-      //// runs before all tests in this block
-      //testServer = global.testServer;
-    //});
     
     it('should register event command classes', function() {
-      // EventCommand module require triggers command class register.
+      // previous EventCommand module require triggers command class register.
       expect(_.size(EventCommand._dockCommands)).not.to.equal(0);   
     });
     
     it('should parse command from JSON to correct class', function() {
-      var commId, data;
+      var commId;
       commId = 'dock';
       testCommand = EventCommand.parse(commId,null);
       expect(testCommand.name).to.equal('kDInitiateDocking');
@@ -52,7 +48,4 @@ describe('Event Command', function( done ) {
     
     });
 
-    //after(function() {
-      //client.end();
-    //});
 });

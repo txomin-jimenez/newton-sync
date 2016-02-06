@@ -1,5 +1,5 @@
 ###*
-  Negotiates session with Newton device. Handle connection parameters and
+  Negotiates session with Newton device. Handles connection parameters and
   password exchange with device. Once session initiated successfully it creates
   a NewtonDevice object. NewtonDevice is used to import/export data and so on.
 @class DockSession
@@ -11,8 +11,11 @@ StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 Enum              = Utils.Enum
 
+NewtonDevice      = require './newton-device'
+
 module.exports = class DockSession
   
+  # dock session types
   @sessionTypes = Enum(
     'kNoSession'
     'kSettingUpSession'
@@ -30,7 +33,7 @@ module.exports = class DockSession
   socket: null
   
   ###*
-    Default timeout in seconds if no comms acivity
+    Default timeout in seconds if no comms activity
   @property kDefaultTimeout
   ###
   kDefaultTimeout: 30
@@ -104,6 +107,7 @@ module.exports = class DockSession
       # app at Newton Device or Dock could start sync process.
       @processFinish()
     .catch (error) =>
+      console.error error
       @processFinish(error)
   
   ###*
@@ -127,14 +131,40 @@ module.exports = class DockSession
     
     @receiveCommand('kDNewtonName')
     .then (newtonNameInfo) =>
+      console.log newtonNameInfo?.name
       # kDNewtonName return a set of Newton device info not only a 'name'
-      @newtonDevice.setInfo newtonNameInfo
+      @newtonDevice = new NewtonDevice newtonNameInfo
+      # TO-DO. at this point we do something to load previous sync file and
+      # things like that
       @sendCommand('kDDesktopInfo', @desktopInfo())
     .then =>
       @receiveCommand('kDNewtonInfo')
     .then (newtonInfo) =>
       # TO-DO: save some protocol and session params
- 
+  
+  ###*
+    Info used to communicate with newton device. we send this info in session
+    negotiation. this describes us as an newton sync compatible app. 
+  @method desktopInfo
+  ###
+  desktopInfo: ->
+    # TO-DO: this info will be dynamic
+    desktopInfo =
+      protocolVersion: 10 # fixed at version 9 (the version used by the 1.0 ROMs) 
+      desktopType: 0 # 0 for Macintosh and 1 for Windows.
+      encryptedKey1: 1434875146 # TO-DO: implement security
+      encryptedKey2: 1852706659
+      sessionType: 1
+      allowSelectiveSync: 0 # TO-DO. this will be adjusted when we can 
+                            # retrieve previous sync file
+    desktopInfo.desktopApps = [
+        name: "Newton Connection"
+        id: 2
+        version: 1
+    ]
+
+    desktopInfo
+
   ###*
     configure which icons will appear in Dock app at Newton device
   @method setDockIcons

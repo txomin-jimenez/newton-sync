@@ -40,6 +40,11 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-coffeelint'
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-simple-mocha'
+
+  grunt.registerTask 'ncu-server', 'start a NCU Server', ->
+    done = this.async()
+    require('./server.js')
+
   grunt.registerTask 'test', [
     'coffee'
     'jshint'
@@ -49,4 +54,10 @@ module.exports = (grunt) ->
     'coffee'
     'jshint'
     'simplemocha'
+  ]
+  grunt.registerTask 'server', [
+    'coffee'
+    'jshint'
+    'simplemocha'
+    'ncu-server'
   ]

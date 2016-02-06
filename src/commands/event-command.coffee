@@ -61,7 +61,7 @@ module.exports = class EventCommand
   @static
   ###
   @parse: (command, data) ->
-    loadCommClasses() # load classes if needed
+    loadCommClasses() # load classes if not loaded yet
     # command accepts id or name
     commClass = dockCommands[command]
     if not commClass?
@@ -79,7 +79,7 @@ module.exports = class EventCommand
   @static
   ###
   @parseFromBinary: (buffer) ->
-    loadCommClasses() # load classes if needed
+    loadCommClasses() # load classes if not loaded yet
     console.log buffer
     commId = Utils.protocol.getCommandId(buffer)
     # get correct class from events object

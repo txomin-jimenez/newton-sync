@@ -93,6 +93,8 @@ module.exports = class NcuServer
     
     for session in @_connections
       session.dispose()
+    
+    @_netServer.close()
 
     properties = [
       '_connections',

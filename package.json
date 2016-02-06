@@ -27,6 +27,7 @@
   "homepage": "https://github.com/txomin-jimenez/newton-sync#readme",
   "dependencies": {
     "cli-color": "^1.1.0",
+    "iconv": "^2.1.11",
     "lodash": "^3.10.1",
     "micro-enum": "git+https://github.com/tolgaek/node-enum.git",
     "q": "^1.4.1",

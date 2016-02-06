@@ -17,7 +17,7 @@ describe('Event Command', function( done ) {
     //});
     
     it('should register event command classes', function() {
-      // top require sentence triggers class register.
+      // EventCommand module require triggers command class register.
       expect(_.size(EventCommand._dockCommands)).not.to.equal(0);   
     });
     

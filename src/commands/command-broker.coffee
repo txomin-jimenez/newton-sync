@@ -30,7 +30,6 @@ module.exports =
     command = EventCommand.parse command, data
     console.log command
     data_ = command.toBinary()
-    console.log data_
     @socket.write(data_)
 
   ###*
@@ -45,8 +44,10 @@ module.exports =
     console.log "waiting for #{commandName}"
     @socket.once 'data', (data) =>
       command = EventCommand.parseFromBinary(data)
+      console.log "#{command.name} command received"
+      if command.id is 'dres'
+        console.log command.data
       if commandName in [command.name, command.id]
-        console.log "#{commandName} received"
         deferred.resolve command.data
 
     deferred.promise

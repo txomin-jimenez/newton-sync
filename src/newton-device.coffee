@@ -2,12 +2,21 @@
   Handle all Newton Device information related command and process.
 @class NewtonDevice
 ###
+Q                 = require 'q'
 _                 = require 'lodash'
+net               = require 'net'
+
 CommandBroker     = require './commands/command-broker'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 
 module.exports = class NewtonDevice
+  
+  ###*
+    TCP socket for device comms
+  @property socket
+  ###
+  socket: null
   
   ###*
   @property name
@@ -80,6 +89,7 @@ module.exports = class NewtonDevice
 
     if options
       _.extend this, _.pick options, [
+        'socket'
         'fNewtonID'
         'fManufacturer'
         'fMachineType'
@@ -99,3 +109,89 @@ module.exports = class NewtonDevice
         'fTargetProtocol'
         'name'
       ]
+  
+    # add machine-state and event emit capability
+    _.extend @, StateMachine
+    
+    # send/receive Newton Dock Commands
+    _.extend @, CommandBroker
+    
+    @_initialize(options)
+  
+  ###*
+    all init method go here
+  @method initialize
+  ###
+  _initialize: (options) ->
+
+    #@connectToDock() if not @socket?
+  
+  ###*
+    return a object with device info 
+  @method info
+  ###
+  info: ->
+    _.pick @ ,[
+      'fNewtonID'
+      'fManufacturer'
+      'fMachineType'
+      'fROMVersion'
+      'fROMStage'
+      'fRAMSize'
+      'fScreenWidth'
+      'fScreenWidth'
+      'fPatchVersion'
+      'fNOSVersion'
+      'fInternalStoreSig'
+      'fScreenResolutionV'
+      'fScreenResolutionH'
+      'fScreenDepth'
+      'fSystemFlags'
+      'fSerialNumber'
+      'fTargetProtocol'
+      'name'
+    ]
+
+  ###*
+  @method
+  ###
+  connectToDock: (options) ->
+
+    deferred = Q.defer()
+    
+    if not @socket?
+      @socket = net.connect
+         port: 3679
+        , ->
+          deferred.resolve()
+  
+    deferred.promise
+  
+  disconnect: ->
+
+    if @socket?
+      @socket.end()
+      @socket = null
+
+  ###*
+  @method dispose
+  ###
+  dispose: ->
+
+    return if @disposed
+
+    @emit 'dispose', this
+    
+    @removeAllListeners()
+
+    #properties = [
+      #'socketConnection',
+      #'newtonDevice',
+    #]
+
+    #delete this[prop] for prop in properties
+    
+    @disposed = true
+
+    # You’re frozen when your heart’s not open.
+    Object.freeze? this

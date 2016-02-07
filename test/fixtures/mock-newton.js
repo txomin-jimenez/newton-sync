@@ -1,4 +1,4 @@
-var FakeNewton,
+var MockNewton,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -8,23 +8,23 @@ var NewtonDevice = newtonSync.NewtonDevice;
 
 var net = require('net');
 
-module.exports = FakeNewton = (function(superClass) {
-  extend(FakeNewton, superClass);
+module.exports = MockNewton = (function(superClass) {
+  extend(MockNewton, superClass);
 
-  function FakeNewton() {
-    return FakeNewton.__super__.constructor.apply(this, arguments);
+  function MockNewton() {
+    return MockNewton.__super__.constructor.apply(this, arguments);
   }
 
-  FakeNewton.id = 'dock';
+  MockNewton.name = 'Test Suite Newton';
 
-  FakeNewton.prototype.data = {
+  MockNewton.prototype.testData = {
     foo: 'bar'
   };
 
-  FakeNewton.prototype.afunction = function() {
+  MockNewton.prototype.afunction = function() {
     return null;
   };
 
-  return FakeNewton;
+  return MockNewton;
 
 })(NewtonDevice);

@@ -136,7 +136,12 @@ module.exports = class EventCommand
     
       # parse binary data to JSON if command is received from Newton device  
       if options.data instanceof Buffer
-        @dataFromBinary(options.data)
+        if options.data.length > 4
+          # if buffer length is 4 only data length received will be 0
+          # and data will be nil so avoid parse error not calling func
+          @dataFromBinary(options.data)
+        else
+          @data = {}
       else
         # set JSON data object.
         @data = options.data
@@ -167,6 +172,7 @@ module.exports = class EventCommand
     # this boilerplate sets 0 as data payload 
     data = new Buffer(4)
     data.writeUInt32BE(0,0)
+    data
   
   ###*
     converts binary data to JSON.

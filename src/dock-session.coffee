@@ -145,6 +145,7 @@ module.exports = class DockSession
     .then (newtonNameInfo) =>
       console.log newtonNameInfo?.name
       # kDNewtonName return a set of Newton device info not only a 'name'
+      newtonNameInfo.socket = @socket
       @newtonDevice = new NewtonDevice newtonNameInfo
       # TO-DO. at this point we do something to load previous sync file and
       # things like that
@@ -226,7 +227,7 @@ module.exports = class DockSession
     @socket?.destroy()
     
     properties = [
-      'socketConnection',
+      'socket',
       'newtonDevice',
     ]
 

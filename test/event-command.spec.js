@@ -12,8 +12,8 @@ describe('Event Command', function( done ) {
     var client = null;
 
     
-    it('should register event command classes', function() {
-      // previous EventCommand module require triggers command class register.
+    it('should register event command classes automatically', function() {
+      testComm = EventCommand.parse('kDHello');
       expect(_.size(EventCommand._dockCommands)).not.to.equal(0);   
     });
     

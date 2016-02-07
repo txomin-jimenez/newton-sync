@@ -26,7 +26,7 @@ module.exports =
   ###
   sendCommand: (command, data) ->
     @_checkSocket()
-    console.log "send command #{command}"
+    console.log "#{@constructor.name} send command #{command}"
     command = EventCommand.parse command, data
     data_ = command.toBinary()
     Q(@socket.write(data_))
@@ -37,14 +37,13 @@ module.exports =
   @method receiveCommand
   ###
   receiveCommand: (commandName) ->
-    console.log "receiveCommand #{commandName}"
     @_checkSocket()
     deferred = Q.defer()
 
-    console.log "waiting for #{commandName}"
+    console.log "#{@constructor.name} waiting for #{commandName}"
     @socket.once 'data', (data) =>
       command = EventCommand.parseFromBinary(data)
-      console.log "#{command.name} command received"
+      console.log "#{@constructor.name} #{command.name} command received"
       if command.id is 'dres'
         console.log command.data
       if commandName in [command.name, command.id]

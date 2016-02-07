@@ -28,7 +28,6 @@ module.exports = class kDNewtonName extends EventCommand
   dataFromBinary: (dataBuffer) ->
     @length = dataBuffer.readUInt32BE(0)
     console.log "newton name length: #{@length}"
-    #@data = {protocolVersion: dataBuffer.readUInt32BE(4)}
     # TO-DO: real test didn't match documentation. check first values to fuuu
     @data =
       fNewtonID: dataBuffer.readUInt32BE(4)
@@ -50,5 +49,4 @@ module.exports = class kDNewtonName extends EventCommand
       fSerialNumber: [dataBuffer.readUInt32BE(68),dataBuffer.readUInt32BE(72)]
       fTargetProtocol: dataBuffer.readUInt32BE(76)
       name: Utils.unichar.toString(dataBuffer.slice(80))
-
 

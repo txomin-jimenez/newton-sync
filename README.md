@@ -1,5 +1,5 @@
-<img align="left", src="media/newton-logo.jpeg">
-# NewtonSync
+
+#  NewtonSync ![newtonlogo](media/newton-logo.jpeg)
 
 NewtonSync is a NodeJS library. Its goal is to make possible communicate with Apple Newton PDA devices from Node applications using Dock Connection Protocol . It provides modules to manage Dock Session, and read/write information from device such as contacts, notes or appointments.
  

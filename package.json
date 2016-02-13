@@ -1,7 +1,7 @@
 {
   "name": "newton-sync",
   "version": "0.1.0",
-  "description": "Apple Newton PDA desktop sync api library for NodeJS",
+  "description": "Apple Newton PDA desktop sync api module for NodeJS",
   "main": "index.js",
   "scripts": {
     "test": "grunt test",

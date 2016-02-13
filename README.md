@@ -1,6 +1,5 @@
-# ![newton-sync](media/dock-capture.png)
-
-# newton-sync
+<img align="left", src="media/newton-logo.jpeg">
+# NewtonSync
 
 NewtonSync is a NodeJS library. Its goal is to make possible communicate with Apple Newton PDA devices from Node applications using Dock Connection Protocol . It provides modules to manage Dock Session, and read/write information from device such as contacts, notes or appointments.
  
@@ -16,8 +15,11 @@ $ npm install --save newton-sync
 ```
 
 ## Main Features
+
+<img align="right", src="media/dock-capture.png">
+
 - NCU TCP Server
-- Session negotiation
+- Session negotiation (**no password exchange yet**)
 - Send/receive dock commands
 - Get device info
 - Read/write soup data **(not yet)**
@@ -26,7 +28,7 @@ $ npm install --save newton-sync
 
 **This is work in progress**. At this time it handles communication via TCP/IP port 3679 for command exchange. This requires a internet enabled Newton and [Dock TCP Package](http://www.kallisys.com/) installed in order to connect:
 
-Serial communication will be tested when basic sync is achieved. For now it 'only' negotiates a new dock session with a device and exchange necessary commands to get dock icons showed at Newton screen.
+Serial communication will be tested when basic sync is achieved. For now it 'only' negotiates a new dock session with a device and exchange necessary commands to get dock icons showed at Newton screen. Screenshot on the right shows how far it reaches.
 
 ## Usage
 
@@ -51,7 +53,7 @@ Unit test available via:
 $ grunt test
 ```
 
-## license
+## License
 
 Copyright (c) 2016, Txomin Jimenez
 

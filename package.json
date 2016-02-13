@@ -1,6 +1,6 @@
 {
   "name": "newton-sync",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Apple Newton PDA desktop sync api library for NodeJS",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "serial"
   ],
   "author": "Txomin Jimenez",
-  "license": "ISC",
+  "license": "SEE LICENSE IN README.md",
   "bugs": {
     "url": "https://github.com/txomin-jimenez/newton-sync/issues"
   },

@@ -32,15 +32,23 @@ describe('Dock Session', function( done ) {
     
     it('should initiate docking on dock request from Newton', function(done) {
       // simulate a session init from Newton to Server
-      // TO-DO: this test will break in near future because Newton device is
-      // not sending data according specification we only test command 
-      // communication and dock response process is ok.
       testNewt.sendCommand('kDRequestToDock',{protocolVersion: 10});
       testNewt.receiveCommand('kDInitiateDocking')
       .then(function(){
-        testNewt.sendCommand('kDNewtonName',testNewt.info());
-        return testNewt.receiveCommand('kDDesktopInfo');
-      }).then(function(){
+        done();
+      }).catch(function(err){
+        throw new Error(err);
+      });
+    });
+    
+    it('should negotiate a sync session with a Newton device', function(done){
+      // continue session negotiation started on previous test
+      // TO-DO: this test will break in near future because Newton device is
+      // not sending data according specification we only test command 
+      // communication and dock response process is ok.
+      testNewt.sendCommand('kDNewtonName',testNewt.info());
+      testNewt.receiveCommand('kDDesktopInfo')
+      .then(function(){
         testNewt.sendCommand('kDNewtonInfo'); 
         return testNewt.receiveCommand('kDWhichIcons');
       }).then(function(){
@@ -51,14 +59,9 @@ describe('Dock Session', function( done ) {
         return testNewt.receiveCommand('kDResult');
       }).then(function(){
         done();
-      })
-      .catch(function(err){
+      }).catch(function(err){
         throw new Error(err);
       });
-    });
-    
-    it('should negotiate a sync session with a Newton device', function(done){
-      done();
     });
 
     after(function() {

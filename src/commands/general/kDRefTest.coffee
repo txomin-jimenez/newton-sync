@@ -39,4 +39,4 @@ module.exports = class kDRefTest extends EventCommand
     Buffer.concat [lengthBuff,data,testData,new Buffer([0x00,0x00])]
   
   dataFromBinary: (dataBuffer) ->
-    throw new Error "not implented yet!"
+    throw new Error "not implemented yet!"

@@ -30,6 +30,7 @@
     "iconv": "^2.1.11",
     "lodash": "^3.10.1",
     "micro-enum": "git+https://github.com/tolgaek/node-enum.git",
+    "newton-des-crypto": "^0.1.1",
     "q": "^1.4.1",
     "recursive-readdir-sync": "^1.0.6"
   },

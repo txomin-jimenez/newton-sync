@@ -17,13 +17,10 @@ module.exports = class kDHello extends EventCommand
   
   id: kDHello.id
   name: 'kDHello'
-  length: null
+  length: 0
 
   constructor: ->
     super
-
-  dataToBinary: ->
-    new Buffer(0)
 
   dataFromBinary: (dataBuffer) ->
     null

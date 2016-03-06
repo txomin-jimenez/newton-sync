@@ -11,6 +11,7 @@ StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 Enum              = Utils.Enum
 ByteEnum          = Utils.ByteEnum
+NewtonDesCrypto   = require 'newton-des-crypto'
 
 NewtonDevice      = require './newton-device'
 
@@ -52,7 +53,7 @@ module.exports = class DockSession
   @property newtonDevice
   ###
   newtonDevice: null
-  
+ 
   ###*
   @class DockSession
   @constructor
@@ -101,8 +102,6 @@ module.exports = class DockSession
   ###
   initSession: ->
     
-    @processBegin()
-    
     @_initDockSession()
     .then =>
       @_exchangeDevicesInfo()
@@ -114,13 +113,12 @@ module.exports = class DockSession
       @_negotiatePassword()
     .then =>
       # At this point session is initiated. User should see dock icons in dock
-      # app at Newton Device or Dock could start sync process.
-      @processFinish()
+      # app at Newton Device and could start sync process.
+      @_initSyncProcess()
     .catch (error) =>
       console.log "init session error"
       console.log error
       console.trace()
-      @processFinish(error)
   
   ###*
     waits for device request and sends initiate docking as response
@@ -156,6 +154,7 @@ module.exports = class DockSession
       # TO-DO: save encrypted keys and protocol version for later check
       console.log "newton info: "
       console.log newtonInfo
+      @_newtonInfo = newtonInfo
   
   ###*
     Info used to communicate with newton device. we send this info in session
@@ -167,8 +166,8 @@ module.exports = class DockSession
     desktopInfo =
       protocolVersion: 10 # fixed at version 9 (the version used by the 1.0 ROMs) 
       desktopType: 0 # 0 for Macintosh and 1 for Windows.
-      encryptedKey1: 1434875146 # TO-DO: implement security
-      encryptedKey2: 1852706659
+      encryptedKey1: 1680076546 #1434875146 # TO-DO: implement security
+      encryptedKey2: 4224566693 #1852706659
       sessionType: 1
       allowSelectiveSync: 0 # TO-DO. this will be adjusted when we can 
                             # retrieve previous sync file
@@ -185,7 +184,7 @@ module.exports = class DockSession
   @method setDockIcons
   ###
   _setDockIcons: ->
-    whichIcons = DockSession.dockIcons.kSyncIcon + DockSession.dockIcons.kRestoreIcon
+    whichIcons = DockSession.dockIcons.kSyncIcon
 
     @sendCommand('kDWhichIcons', whichIcons)
     .then =>
@@ -198,9 +197,96 @@ module.exports = class DockSession
   _negotiatePassword: ->
 
     @receiveCommand('kDPassword')
+    .then (receivedKey) =>
+      newtonKey = _.pick(@_newtonInfo,['encryptedKey1','encryptedKey2'])
+      sendKeys = @_encryptKey(newtonKey)
+      @sendCommand('kDPassword', sendKeys)
+    .then =>
+      @receiveCommand('kDResult')
+
+  ###*
+    Encrypt newtonInfo keys with Newton variant DES algorithm
+  @method encryptKeys
+  ###
+  _encryptKey: (newtonKey) ->
+
+    keyData = new Buffer(8)
+    keyData.writeUInt32BE newtonKey.encryptedKey1, 0
+    keyData.writeUInt32BE newtonKey.encryptedKey2, 4
+    
+    # NewtonDesCrypto expects key pair as a single 64bit hex string
+    # encryptedValue also is a 64bit hex string
+    encryptedData = NewtonDesCrypto.encryptBlock(null, keyData.toString('hex'))
+  
+    encryptedKey=
+      encryptedKey1: parseInt('0x'+encryptedData.slice(0,8))
+      encryptedKey2: parseInt('0x'+encryptedData.slice(8,16))
+    
+    encryptedKey
+
+  _negotiatePasswordOld: ->
+    @receiveCommand('kDPassword')
     .then (receivedKeys) =>
+      console.log "receivedKeys"
       console.log receivedKeys
-      @sendCommand('kDResult',0)
+      #sendKeys = _.pick(@_newtonInfo,['encryptedKey1','encryptedKey2'])
+      #sendKeys =
+        #encryptedKey1: 3241982281
+        #encryptedKey2: 3988672035
+      newtonKeys = _.pick(@_newtonInfo,['encryptedKey1','encryptedKey2'])
+      #newtonKey = @_newtonInfo.binaryKey
+      console.log "newtonKeys"
+      console.log newtonKeys
+      keyData = new Buffer(8)
+      keyData.writeUInt32BE newtonKeys.encryptedKey1, 0
+      keyData.writeUInt32BE newtonKeys.encryptedKey2, 4
+      console.log "keyData"
+      console.log keyData
+      
+      cipher = Crypto.createCipheriv("des-ecb", @defaultEncryptPass, '')
+      cipher.setAutoPadding(false)
+      encryptedData = Buffer.concat([
+        cipher.update(keyData)
+        cipher.final()
+      ])
+      
+      console.log "encryptedData"
+      console.log encryptedData
+      console.log encryptedData.length
+      
+      sendKeys =
+        encryptedKey1: encryptedData.readUInt32BE(0)
+        encryptedKey2: encryptedData.readUInt32BE(4)
+      
+      console.log "sendKeys"
+      console.log sendKeys
+      @sendCommand('kDPassword', sendKeys)
+    .then =>
+      @receiveCommand('kDResult')
+  
+
+  _initSyncProcess: ->
+
+    @listenForCommand 'kDHello', =>
+      console.log "say hello"
+      #setTimeout =>
+        #@sendCommand('kDHello')
+      #, 100
+
+    # take control and send command to Newton 
+    #@sendCommand("kDDesktopControl")
+    #.then =>
+      #@sendCommand("kDRequestToSync")
+    
+    #@receiveCommand('kDRequestToSync')
+    #@receiveCommand('kDHello')
+    #@sendCommand('kDGetAppNames')
+    #.then =>
+      #@receiveCommand('kDAppNames')
+      #setTimeout =>
+        #@sendCommand("kDRequestToSync")
+        ##@sendCommand('kDHello')
+      #, 1000
   
   ###*
   @method endSession

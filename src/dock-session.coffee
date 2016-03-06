@@ -224,47 +224,6 @@ module.exports = class DockSession
     
     encryptedKey
 
-  _negotiatePasswordOld: ->
-    @receiveCommand('kDPassword')
-    .then (receivedKeys) =>
-      console.log "receivedKeys"
-      console.log receivedKeys
-      #sendKeys = _.pick(@_newtonInfo,['encryptedKey1','encryptedKey2'])
-      #sendKeys =
-        #encryptedKey1: 3241982281
-        #encryptedKey2: 3988672035
-      newtonKeys = _.pick(@_newtonInfo,['encryptedKey1','encryptedKey2'])
-      #newtonKey = @_newtonInfo.binaryKey
-      console.log "newtonKeys"
-      console.log newtonKeys
-      keyData = new Buffer(8)
-      keyData.writeUInt32BE newtonKeys.encryptedKey1, 0
-      keyData.writeUInt32BE newtonKeys.encryptedKey2, 4
-      console.log "keyData"
-      console.log keyData
-      
-      cipher = Crypto.createCipheriv("des-ecb", @defaultEncryptPass, '')
-      cipher.setAutoPadding(false)
-      encryptedData = Buffer.concat([
-        cipher.update(keyData)
-        cipher.final()
-      ])
-      
-      console.log "encryptedData"
-      console.log encryptedData
-      console.log encryptedData.length
-      
-      sendKeys =
-        encryptedKey1: encryptedData.readUInt32BE(0)
-        encryptedKey2: encryptedData.readUInt32BE(4)
-      
-      console.log "sendKeys"
-      console.log sendKeys
-      @sendCommand('kDPassword', sendKeys)
-    .then =>
-      @receiveCommand('kDResult')
-  
-
   _initSyncProcess: ->
 
     @listenForCommand 'kDHello', =>

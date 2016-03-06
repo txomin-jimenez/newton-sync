@@ -22,14 +22,23 @@ module.exports = class kDPassword extends EventCommand
   
   id: kDPassword.id
   name: 'kDPassword'
-  #length: 
+  length: 8
 
   constructor: ->
     super
+  
+  dataToBinary: ->
+    data = new Buffer(12)
+    data.writeUInt32BE(@length,0)
+    data.writeUInt32BE(@data.encryptedKey1,4)
+    data.writeUInt32BE(@data.encryptedKey2,8)
+    data
 
   dataFromBinary: (dataBuffer) ->
     @length = dataBuffer.readUInt32BE(0) # must be 8
-    
+
     @data =
-      encryptedKey1:dataBuffer.readUInt32BE(4)
+      # save in number format
+      encryptedKey1: dataBuffer.readUInt32BE(4)
       encryptedKey2: dataBuffer.readUInt32BE(8)
+      

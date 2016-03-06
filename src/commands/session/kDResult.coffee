@@ -33,6 +33,6 @@ module.exports = class kDResult extends EventCommand
   
   dataFromBinary: (dataBuffer) ->
     @length = dataBuffer.readUInt32BE(0)
-    # this time is a signed long
-    @data = {errorCode: dataBuffer.readUInt32BE(4)}
+    # this time is a signed long 
+    @data = {errorCode: dataBuffer.readInt32BE(4)}
     

@@ -17,6 +17,11 @@ module.exports = MockNewton = (function(superClass) {
 
   MockNewton.name = 'Test Suite Newton';
 
+  MockNewton.prototype.newtonInfo = {
+    protocolVersion: 10,
+    encryptedKey1: 0x00783c8c, //991083, //6622230,
+    encryptedKey2: 0x002bb602}; //4286766539}; //5804779};
+
   MockNewton.prototype.testData = {
     foo: 'bar'
   };

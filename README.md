@@ -19,7 +19,7 @@ $ npm install --save newton-sync
 <img align="right", src="media/dock-capture.png">
 
 - NCU TCP Server
-- Session negotiation (**no password exchange yet**)
+- Session negotiation with password support
 - Send/receive dock commands
 - Get device info
 - Read/write soup data **(not yet)**

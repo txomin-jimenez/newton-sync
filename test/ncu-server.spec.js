@@ -17,7 +17,7 @@ describe('NCU Server', function( done ) {
     });
     
     it('should listen connections from Newtons', function(done) {
-      client = net.connect({port: testServer.newtonPort},
+      client = net.connect({port: testServer.httpPort},
       function() { //'connect' listener
         done(); 
       });

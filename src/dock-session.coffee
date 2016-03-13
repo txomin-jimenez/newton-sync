@@ -63,6 +63,7 @@ module.exports = class DockSession
     if options
       _.extend this, _.pick options, [
         'socket'
+        'kDefaultTimeout'
         'newtonDevice'
       ]
     
@@ -80,6 +81,7 @@ module.exports = class DockSession
   ###
   _initialize: (options) ->
     
+    # end session if client disconnects
     @socket.on 'end', =>
       @endSession()
    
@@ -118,7 +120,10 @@ module.exports = class DockSession
     .catch (error) =>
       console.log "init session error"
       console.log error
-      console.trace()
+      # if something went wrong abort session. Client will have to reconnect
+      # if error persist it must be a bug or something
+      @endSession()
+      #console.trace()
   
   ###*
     waits for device request and sends initiate docking as response
@@ -127,9 +132,7 @@ module.exports = class DockSession
   _initDockSession: ->
     @receiveCommand('kDRequestToDock')
     .then (protocolVersion) =>
-      console.log "..."
-      console.log protocolVersion
-      # send session type
+      # send session type. Only sync will be supported
       sessionType = DockSession.sessionTypes.kSynchronizeSession
       @sendCommand('kDInitiateDocking',{sessionType: sessionType})
   
@@ -168,7 +171,7 @@ module.exports = class DockSession
       desktopType: 0 # 0 for Macintosh and 1 for Windows.
       encryptedKey1: 1680076546 #1434875146 # TO-DO: implement security
       encryptedKey2: 4224566693 #1852706659
-      sessionType: 1
+      sessionType: DockSession.sessionTypes.kSettingUpSession
       allowSelectiveSync: 0 # TO-DO. this will be adjusted when we can 
                             # retrieve previous sync file
     desktopInfo.desktopApps = [
@@ -184,6 +187,7 @@ module.exports = class DockSession
   @method setDockIcons
   ###
   _setDockIcons: ->
+    # Show only sync dock icon. only sync will be supported
     whichIcons = DockSession.dockIcons.kSyncIcon
 
     @sendCommand('kDWhichIcons', whichIcons)
@@ -198,11 +202,15 @@ module.exports = class DockSession
 
     @receiveCommand('kDPassword')
     .then (receivedKey) =>
+      # check if received key is encrypted correctly with session password
+
+      # encrypt and send newton received keys as response
+      # if OK newton will start sync process else will respond with error
+      # in that case will abort session as something strange happened with
+      # password and keys (must be a bug)
       newtonKey = _.pick(@_newtonInfo,['encryptedKey1','encryptedKey2'])
       sendKeys = @_encryptKey(newtonKey)
       @sendCommand('kDPassword', sendKeys)
-    .then =>
-      @receiveCommand('kDResult')
 
   ###*
     Encrypt newtonInfo keys with Newton variant DES algorithm
@@ -215,7 +223,7 @@ module.exports = class DockSession
     keyData.writeUInt32BE newtonKey.encryptedKey2, 4
     
     # NewtonDesCrypto expects key pair as a single 64bit hex string
-    # encryptedValue also is a 64bit hex string
+    # encryptedData also is a 64bit hex string
     encryptedData = NewtonDesCrypto.encryptBlock(null, keyData.toString('hex'))
   
     encryptedKey=
@@ -223,29 +231,50 @@ module.exports = class DockSession
       encryptedKey2: parseInt('0x'+encryptedData.slice(8,16))
     
     encryptedKey
+  
+  ###*
+    Decrypt received desktopInfo key pair
+  @method encryptKeys
+  ###
+  _decryptKey: (desktopKey) ->
 
-  _initSyncProcess: ->
-
-    @listenForCommand 'kDHello', =>
-      console.log "say hello"
-      #setTimeout =>
-        #@sendCommand('kDHello')
-      #, 100
-
-    # take control and send command to Newton 
-    #@sendCommand("kDDesktopControl")
-    #.then =>
-      #@sendCommand("kDRequestToSync")
+    keyData = new Buffer(8)
+    keyData.writeUInt32BE desktopKey.encryptedKey1, 0
+    keyData.writeUInt32BE desktopKey.encryptedKey2, 4
     
-    #@receiveCommand('kDRequestToSync')
-    #@receiveCommand('kDHello')
-    #@sendCommand('kDGetAppNames')
-    #.then =>
-      #@receiveCommand('kDAppNames')
-      #setTimeout =>
-        #@sendCommand("kDRequestToSync")
-        ##@sendCommand('kDHello')
-      #, 1000
+    # NewtonDesCrypto expects key pair as a single 64bit hex string
+    # decryptedData also is a 64bit hex string
+    decryptedData = NewtonDesCrypto.decryptBlock(null, keyData.toString('hex'))
+  
+    decryptedKey =
+      encryptedKey1: parseInt('0x'+decryptedData.slice(0,8))
+      encryptedKey2: parseInt('0x'+decryptedData.slice(8,16))
+    
+    decryptedKey
+  
+  ###*
+    Init sync process with connected device
+  @method initSyncProcess  
+  ###
+  _initSyncProcess: ->
+    
+    console.log "init sync process..."
+
+    @receiveCommand('kDSynchronize')
+    .then =>
+      #@listenForCommand 'all', (data) ->
+        #console.log "comm received..."
+        #console.log data
+      @sendCommand('kDGetSyncOptions')
+    .then =>
+      @receiveCommand('kDSyncOptions')
+    .then (syncOptions) =>
+      console.log "received sync options:"
+      console.log syncOptions
+      # TO-DO: all sync process :)
+    .then =>
+      # end session because we have finished
+      @endSession()
   
   ###*
   @method endSession
@@ -253,6 +282,9 @@ module.exports = class DockSession
   endSession: ->
 
     # ...
+    console.log "end session with "
+    
+    @socket.end()
 
     @dispose()
 

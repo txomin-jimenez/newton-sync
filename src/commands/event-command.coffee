@@ -74,6 +74,14 @@ module.exports = class EventCommand
     new commClass opts
   
   ###*
+   get command ID from binary command buffer
+  @method getCommandId 
+  ###
+  @getCommandId: (buffer) ->
+    # ignore first eight letters as always is same 'newtdock' header
+    buffer.toString('ascii',8,12)
+  
+  ###*
     generate a command from data buffer received (usually from Newton)
   @method parseFromBinary
   @static
@@ -81,7 +89,7 @@ module.exports = class EventCommand
   @parseFromBinary: (buffer) ->
     loadCommClasses() # load classes if not loaded yet
     console.log buffer
-    commId = Utils.protocol.getCommandId(buffer)
+    commId = EventCommand.getCommandId(buffer)
     # get correct class from events object
     commClass = dockCommands[commId]
     if not commClass?

@@ -153,20 +153,28 @@ module.exports = class NewtonDevice
     ]
 
   ###*
-  @method
+    Connect to doc. Used to mock Newton device connection in test environment
+  @method connectToDock
   ###
   connectToDock: (options) ->
 
     deferred = Q.defer()
+
+    opts_ =
+      port: 3679
+      
+    _.extend opts_, options
     
     if not @socket?
-      @socket = net.connect
-         port: 3679
-        , ->
-          deferred.resolve()
+      @socket = net.connect opts_, ->
+        deferred.resolve()
   
     deferred.promise
-  
+ 
+  ###*
+    Disconnect from dock. Used in test environment 
+  @method disconnect 
+  ###
   disconnect: ->
 
     if @socket?

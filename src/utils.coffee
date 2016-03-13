@@ -6,13 +6,6 @@ unicharEncode = new Iconv('UTF-8','UTF-16BE')
 
 module.exports =
 
-  protocol:
-    
-    # get command ID from binary command buffer
-    getCommandId: (buffer) ->
-      # ignore first eight letters as always is same 'newtdock' header
-      buffer.toString('ascii',8,12)
-  
   # Creates enum - like type    
   Enum: ->
     values = arguments

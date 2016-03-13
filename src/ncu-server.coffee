@@ -15,16 +15,26 @@ module.exports = class NcuServer
   _.extend @prototype, EventEmitter.prototype
   
   ###*
+    default http port for http connections.
   @property newtonPort
+  @static
   ###
-  newtonPort: 3679
+  @newtonPort: 3679
   
   ###*
+    http port for http connections, Defaults to Newton Port
+  @property httpPort 
+  ###
+  httpPort: NcuServer.newtonPort
+  
+  ###*
+    NodeJS TCP server for http dock sync
   @property netServer
   ###
   _netServer: null
   
   ###*
+    A object referencing open connections
   @property connections
   ###
   _connections: null
@@ -33,8 +43,13 @@ module.exports = class NcuServer
   @class NcuServer
   @constructor
   ###
-  constructor: ->
+  constructor: (options) ->
    
+    if options
+      _.extend this, _.pick options, [
+        'httpPort'
+      ]
+    
     @_initialize()
 
   ###*
@@ -52,9 +67,9 @@ module.exports = class NcuServer
   _initNetServer: ->
     @_connections = {}
     @_netServer = net.createServer @_newConnection
-    @_netServer.listen @newtonPort, '0.0.0.0'
+    @_netServer.listen @httpPort, '0.0.0.0'
     
-    console.log "NCU server listening connections at port #{@newtonPort}"
+    console.log "NCU server listening connections at port #{@httpPort}"
   
   ###*
     new client connection handler. Creates a new session object. all session

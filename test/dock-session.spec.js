@@ -6,6 +6,7 @@ var expect = require( 'chai' ).expect;
 var net = require('net');
 var _ = require('lodash');
 var StringDecoder = require('string_decoder').StringDecoder;
+var NewtonDesCrypto = require('newton-des-crypto');
 
 describe('Dock Session', function( done ) {
     var client = null;
@@ -46,16 +47,30 @@ describe('Dock Session', function( done ) {
       // TO-DO: this test will break in near future because Newton device is
       // not sending data according specification we only test command 
       // communication and dock response process is ok.
+      testServer._connections[(Object.keys(testServer._connections))[0]].sessionPwd = 'test123';
+      global.testDockInfo = null;
       testNewt.sendCommand('kDNewtonName',testNewt.info());
       testNewt.receiveCommand('kDDesktopInfo')
-      .then(function(){
+      .then(function(dockInfo){
+        console.log('.................................');
+        console.log(_.pick(dockInfo,['encryptedKey1','encryptedKey2']));
+        testDockInfo = dockInfo;
         testNewt.sendCommand('kDNewtonInfo', testNewt.newtonInfo); 
         return testNewt.receiveCommand('kDWhichIcons');
       }).then(function(){
         testNewt.sendCommand('kDResult');
         return testNewt.receiveCommand('kDSetTimeout');
       }).then(function(){
-        testPassKeys = {encryptedKey1: 0, encryptedKey2: 0};
+        var keyData = new Buffer(8);
+        keyData.writeUInt32BE(testDockInfo.encryptedKey1, 0);
+        keyData.writeUInt32BE(testDockInfo.encryptedKey2, 4);
+        
+        var encryptedData = NewtonDesCrypto.encryptBlock('test123', keyData.toString('hex'));
+
+        testPassKeys = {
+          encryptedKey1: parseInt('0x'+encryptedData.slice(0,8)),
+          encryptedKey2: parseInt('0x'+encryptedData.slice(8,16))
+        };
         testNewt.sendCommand('kDPassword', testPassKeys);
         return testNewt.receiveCommand('kDPassword');
       //}).then(function(){
@@ -69,14 +84,8 @@ describe('Dock Session', function( done ) {
     });
 
     it('should encrypt password keys with DES algorithm', function(){
-      // test 1
-      //expect(global.passwdRes.encryptedKey1).to.equal(3241982281);
-      //expect(global.passwdRes.encryptedKey2).to.equal(3988672035);
-      // test 2
-      //expect(global.passwdRes.encryptedKey1).to.equal(3676571365);
-      //expect(global.passwdRes.encryptedKey2).to.equal(3238475354);
-      expect(global.passwdRes.encryptedKey1).to.equal(3546623449);
-      expect(global.passwdRes.encryptedKey2).to.equal(2891132143);
+      expect(global.passwdRes.encryptedKey1).to.equal(3420888417);
+      expect(global.passwdRes.encryptedKey2).to.equal(1631650501);
     });
 
     after(function() {

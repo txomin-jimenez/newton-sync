@@ -53,7 +53,9 @@ module.exports =
     @socket.on 'data', (data) =>
       command = EventCommand.parseFromBinary(data)
       console.log "#{@constructor.name} listening for #{commandName}, #{command.name} command received"
-      if commandName in [command.name, command.id] or commandName is 'all'
+      if commandName is 'all'
+        cb(command)
+      else if commandName in [command.name, command.id]
         cb(command.data)
 
   ###*
@@ -89,6 +91,10 @@ module.exports =
           deferred.resolve result
         .catch (err) ->
           deferred.reject err
+      else if command.id is 'disc'
+        deferred.reject
+          errorCode: -28012
+          reason: "Docking canceled"
       else
         # if other command received respond to client with error as this
         # was not expected

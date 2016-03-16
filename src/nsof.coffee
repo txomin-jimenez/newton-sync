@@ -3,17 +3,35 @@ _                 = require 'lodash'
 Utils             = require './utils'
 
 # (NSOF) Newton Streamed Object encoding / decoding
-toSymbol = (key) =>
-  symbolHeader = new Buffer(2)
-  if key.length > 254
-    throw new Error "not implemented yet"
+
+# convert number to xlong
+toXlong = (numberVal) ->
+  # 0 ≤ value ≤ 254: unsigned byte
+  if numberVal >= 0 and numberVal <= 254
+    new Buffer([numberVal])
+  else
+    # else: byte 0xFF followed by signed long
+    bufA = new Buffer([0xFF])
+    bufB = new Buffer(4)
+    bufB.writeInt32BE(numberVal, 0)
+    Buffer.concat [bufA, bufB]
+
+toSymbol = (key) ->
+  symbolHeader = new Buffer(1)
   symbolHeader.writeUInt8(7,0) # kSymbol=7
-  symbolHeader.writeUInt8(key.length,1)
-  Buffer.concat [symbolHeader, new Buffer(key,'ascii')]
+  Buffer.concat [
+    symbolHeader
+    toXlong(key.length)
+    Buffer(key,'ascii')
+  ]
 
-toImmediate = (numberVal) ->
-  new Buffer([0x00, (numberVal << 2)])
+# encode ref numbers
+#   kImmediate=0 (byte)
+#   Immediate Ref (xlong)
+toImmediate = (ref) ->
+  Buffer.concat [new Buffer([0x00]), toXlong(ref << 2)]
 
+# encode boolean values  
 toBoolean = (value) ->
   # the Ref for TRUE is 0x1A
   if value
@@ -21,25 +39,31 @@ toBoolean = (value) ->
   else
     new Buffer([0x00,0x00])
 
+# encode null values
+#   kNIL=10 (byte)
 toNIL = ->
   # the Ref for NIL is 0x2. kNIL=10. TO-DO: not sure about this, confused about
   # documentation
   new Buffer([0x00,2])
 
-
+# encode string  
+#   kString=8 (byte)
+#   Number of bytes in string (xlong)
+#   String (halfwords)
 toString = (stringVal) ->
   unicharValue = Utils.unichar.toUniCharBuffer(stringVal)
-  if unicharValue.length > 254
-    throw new Error "not implemented yet"
-  stringHeader = new Buffer(2)
+  stringHeader = new Buffer(1)
   stringHeader.writeUInt8(8,0) # kString = 8
-  stringHeader.writeUInt8(unicharValue.length,1)
-  Buffer.concat [stringHeader, unicharValue]
+  Buffer.concat [
+    stringHeader
+    toXlong(unicharValue.length)
+    unicharValue
+  ]
 
 cast = (value) ->
   switch typeof value
     when 'string' then toString(value)
-    when 'number' then toImmediate(value) # TO-DO: check this as only < 255
+    when 'number' then toImmediate(value)
     when 'boolean' then toBoolean(value)
     when 'object'
       if value is null
@@ -53,29 +77,24 @@ cast = (value) ->
 
 
 # encode array to Newton plain array
+#   kPlainArray=5 (byte)
+#   Number of slots (xlong)
+#   Slot values in ascending order (objects)
 toArray = (arrayObject) ->
-  #console.log "toArray"
-  #console.log arrayObject
-  arrayHeader = new Buffer(2)
+  arrayHeader = new Buffer(1)
   arrayHeader.writeUInt8(5,0) # kPlainArray
-  arrayHeader.writeUInt8(arrayObject.length,1) # number of slots
 
   slotValues = _.map arrayObject, cast
   
   # concat arrays into an array of buffers and concat into a new buffer
-  Buffer.concat [arrayHeader].concat(slotValues)
+  Buffer.concat [arrayHeader, toXlong(arrayObject.length)].concat(slotValues)
 
 # encode JSON object to Newton Frame
 toFrame = (object) ->
-  #console.log "toFrame"
-  #console.log object
   keyCount = _.size(object)
-  if keyCount > 254
-    throw new Error "not implemented yet"
    
-  frameHeader = new Buffer(2)
+  frameHeader = new Buffer(1)
   frameHeader.writeUInt8(6,0) # kFrame=6
-  frameHeader.writeUInt8(keyCount,1) # number of slots
 
   slotTags = []
   slotValues = []
@@ -88,7 +107,7 @@ toFrame = (object) ->
     slotValues.push cast(value)
 
   # concat arrays into an array of buffers and concat into a new buffer
-  Buffer.concat [frameHeader].concat(slotTags,slotValues)
+  Buffer.concat [frameHeader, toXlong(keyCount)].concat(slotTags,slotValues)
     
 module.exports =
   

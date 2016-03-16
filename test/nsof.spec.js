@@ -13,8 +13,13 @@ describe('NSOF', function( done ) {
     var client = null;
 
     it('should generate a number', function (){
-      NsOFimmediate = new Buffer([0x02, 0x00, 0x04]);
+      NsOFimmediate = new Buffer('020004','hex');
       expect(NsOF.fromValue(1).equals(NsOFimmediate)).to.be.true;
+    });
+    
+    it('should generate a number greater than 255', function (){
+      NsOFimmediate = new Buffer('0200FF00003CCC','hex');
+      expect(NsOF.fromValue(3891).equals(NsOFimmediate)).to.be.true;
     });
     
     it('should generate a string', function (){

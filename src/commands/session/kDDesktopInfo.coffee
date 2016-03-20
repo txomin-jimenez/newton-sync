@@ -71,15 +71,13 @@ module.exports = class kDDesktopInfo extends EventCommand
     data.writeUInt32BE(@data.sessionType,16)
     data.writeUInt32BE(@data.allowSelectiveSync,20)
     
-    desktopAppsData = NsOF.fromValue(@data.desktopApps)
+    desktopAppsData = NsOF.encode(@data.desktopApps)
     
     lengthBuff = new Buffer(4)
     #console.log "data length: #{data.length}"
     lengthBuff.writeUInt32BE(data.length+desktopAppsData.length,0)
     
-    # TO-DO: don't know why but whe must terminate de buffer with 0 0
-    # or Newton wont recognize it. Probably a byte padding? or terminator
-    Buffer.concat [lengthBuff,data,desktopAppsData,new Buffer([0x00,0x00])]
+    Buffer.concat [lengthBuff,data,desktopAppsData]
 
   dataFromBinary: (dataBuffer) ->
     @length = dataBuffer.readUInt32BE(0)

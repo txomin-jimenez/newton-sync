@@ -168,7 +168,18 @@ module.exports = class EventCommand
     # serialize binary representation of command data
     dataBuffer = @dataToBinary()
     # concat two buffers in one as result
-    Buffer.concat [commandBuffer, dataBuffer]
+    resBuffer = Buffer.concat [commandBuffer, dataBuffer]
+    # check 4 byte padding.
+    resBuffPadding = resBuffer.length % 4
+    if resBuffPadding is 0
+      # is aligned
+      resBuffer
+    else
+      # add padding to 4 byte boundary
+      padBuffer = new Buffer(4-resBuffPadding)
+      padBuffer.fill(0)
+      Buffer.concat [resBuffer,padBuffer]
+
   
   ###*
     create a binary buffer representation of data.

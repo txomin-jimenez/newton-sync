@@ -12,33 +12,53 @@ var _ = require('lodash');
 describe('NSOF', function( done ) {
     var client = null;
 
-    it('should generate a number', function (){
-      NsOFimmediate = new Buffer('020004','hex');
-      expect(NsOF.fromValue(1).equals(NsOFimmediate)).to.be.true;
+    it('should encode a number', function (){
+      global.NsOFimmediate = new Buffer('020004','hex');
+      expect(NsOF.encode(1).equals(NsOFimmediate)).to.be.true;
     });
     
-    it('should generate a number greater than 255', function (){
+    it('should decode a number', function (){
+      expect(NsOF.decode(NsOFimmediate)).to.equal(1);
+    });
+    
+    it('should encode a number greater than 255', function (){
       NsOFimmediate = new Buffer('0200FF00003CCC','hex');
-      expect(NsOF.fromValue(3891).equals(NsOFimmediate)).to.be.true;
+      expect(NsOF.encode(3891).equals(NsOFimmediate)).to.be.true;
     });
     
-    it('should generate a string', function (){
-      NsOfString = new Buffer([0x02,0x08,0x1A,0x00,0x57,0x00,0x61,0x00,0x6C,0x00,0x74,0x00,0x65,0x00,0x72,0x00,0x20,0x00,0x53,0x00,0x6D,0x00,0x69,0x00,0x74,0x00,0x68,0x00,0x00]);
-      expect(NsOF.fromValue("Walter Smith").equals(NsOfString)).to.be.true;
+    it('should decode number greater than 255', function (){
+      expect(NsOF.decode(NsOFimmediate)).to.equal(3891);
     });
     
-    it('should generate an array', function (){
-      NsOfArray = new Buffer([0x02,0x05,0x02,0x08,0x08,0x00,0x66,0x00,0x6f,0x00,0x6f,0x00,0x00,0x08,0x08,0x00,0x62,0x00,0x61,0x00,0x72,0x00,0x00]);
-      expect(NsOF.fromValue(['foo','bar']).equals(NsOfArray)).to.be.true;
+    it('should encode a string', function (){
+      global.NsOfString = new Buffer('02081A00570061006C00740065007200200053006D0069007400680000','hex');
+      expect(NsOF.encode("Walter Smith").equals(NsOfString)).to.be.true;
+    });
+    
+    it('should decode a string', function (){
+      expect(NsOF.decode(NsOfString)).to.equal("Walter Smith");
+    });
+    
+    it('should encode an array', function (){
+      global.NsOfArray = new Buffer('02050208080066006f006f000008080062006100720000','hex');
+      expect(NsOF.encode(['foo','bar']).equals(NsOfArray)).to.be.true;
+    });
+    
+    it('should decode an array', function (){
+      expect(_.isEqual(NsOF.decode(NsOfArray),['foo','bar'])).to.be.true;
     });
 
-    it('should generate an frame object', function (){
-      NsOfObject = new Buffer([0x02,0x06,0x02,0x07,0x04,0x6E,0x61,0x6D,0x65,0x07,0x04,0x63,0x61,0x74,0x73,0x08,0x1A,0x00,0x57,0x00,0x61,0x00,0x6C,0x00,0x74,0x00,0x65,0x00,0x72,0x00,0x20,0x00,0x53,0x00,0x6D,0x00,0x69,0x00,0x74,0x00,0x68,0x00,0x00,0x00,0x08]); 
-      expect(NsOF.fromValue({name: "Walter Smith", cats: 2}).equals(NsOfObject)).to.be.true;
+    it('should encode an frame object', function (){
+      global.NsOfObject = new Buffer('02060207046E616D65070463617473081A00570061006C00740065007200200053006D00690074006800000008','hex'); 
+      expect(NsOF.encode({name: "Walter Smith", cats: 2}).equals(NsOfObject)).to.be.true;
     });
     
-    it('should generate a complex frame object', function (){
-      testBuff = new Buffer([0x6e, 0x65, 0x77, 0x74 , 0x64 , 0x6f , 0x63 , 0x6b , 0x64 , 0x69 , 0x6e , 0x66 , 0x00 , 0x00 , 0x00 , 0x66 , 0x00 , 0x00 , 0x00 , 0x0a , 0x00 , 0x00 , 0x00 , 0x00 , 0x55 , 0x86 , 0x75 , 0x0a , 0x6e , 0x6e , 0x0f , 0x63 , 0x00 , 0x00 , 0x00 , 0x01 , 0x00 , 0x00 , 0x00 , 0x01 , 0x02 , 0x05 , 0x01 , 0x06 , 0x04 , 0x07 , 0x04 , 0x6e , 0x61 , 0x6d , 0x65 , 0x07 , 0x02 , 0x69 , 0x64 , 0x07 , 0x07 , 0x76 , 0x65 , 0x72 , 0x73 , 0x69 , 0x6f , 0x6e , 0x07 , 0x08 , 0x64 , 0x6f , 0x65 , 0x73 , 0x41 , 0x75 , 0x74 , 0x6f , 0x08 , 0x24 , 0x00 , 0x4e , 0x00 , 0x65 , 0x00 , 0x77 , 0x00 , 0x74 , 0x00 , 0x6f , 0x00 , 0x6e , 0x00 , 0x20 , 0x00 , 0x43 , 0x00 , 0x6f , 0x00 , 0x6e , 0x00 , 0x6e , 0x00 , 0x65 , 0x00 , 0x63 , 0x00 , 0x74 , 0x00 , 0x69 , 0x00 , 0x6f , 0x00 , 0x6e , 0x00 , 0x00 , 0x00 , 0x08 , 0x00 , 0x04 , 0x00 , 0x1a , 0x00 , 0x00]);
+    it('should decode an frame object', function (){
+      expect(_.isEqual(NsOF.decode(NsOfObject),{name: "Walter Smith", cats: 2})).to.be.true;
+    });
+    
+    it('should encode a complex frame object', function (){
+      testBuff = new Buffer('6e657774646f636b64696e66000000660000000a000000005586750a6e6e0f630000000100000001020501060407046e616d6507026964070776657273696f6e0708646f65734175746f0824004e006500770074006f006e00200043006f006e006e0065006300740069006f006e000000080004001a0000','hex');
       opts = {
         protocolVersion: 10,
         desktopType: 0,
@@ -51,18 +71,9 @@ describe('NSOF', function( done ) {
 
       testCommand = EventCommand.parse('kDDesktopInfo',opts);
       commBuff = testCommand.toBinary();
-/*      for (var i = 0; i < testBuff.length ; i++) {
-        if(commBuff[i] !== null && commBuff[i] !== undefined)
-          myVal = commBuff[i].toString(16);
-        else
-          myVal = null;
-        theirVal = testBuff[i].toString(16);
-        if (myVal != theirVal)
-          console.log(myVal + "("+String.fromCharCode(commBuff[i])+") -> " + theirVal + "("+String.fromCharCode(testBuff[i])+") <-----");
-        else
-          console.log(myVal + "("+String.fromCharCode(commBuff[i])+") -> " + theirVal + "("+String.fromCharCode(testBuff[i])+") ");
-      }
-*/
+      console.log("===================================================");
+      console.log(testCommand.dataToBinary().toString('hex'));
       expect(commBuff.equals(testBuff)).to.be.true;
     });
+    
 });

@@ -48,7 +48,8 @@ NBoolean =
       bytesRead: 2 # head + value bytes
     )
 
-# kNIL is a special type for null values. It saves bytes in frame
+# kNIL is a special type for null values. encoders can use this types in 
+# order to reduce the size of the streamed data
 # kNIL=10 (byte)
 NNIL =
   encode: ->
@@ -61,7 +62,8 @@ NNIL =
       bytesRead: 1 # head + value bytes
     )
 
-# encode numbers as immediate refs
+# Immediate objects are represented by kImmediate followed by a Ref that 
+# gives the value of the immediate 
 #   kImmediate=0 (byte)
 #   Immediate Ref (xlong)
 NImmediate =
@@ -84,8 +86,12 @@ NImmediate =
   decode: (buffer) ->
     # extract binary ref value
     decodedLong = NXlong.decode(buffer.slice(1))
-    # decode ref value
-    decodedLong.value = decodedLong.value >> 2
+    # check for TRUE ref
+    if decodedLong.value is 0x1A
+      decodedLong.value = true
+    else
+      # decode ref value
+      decodedLong.value = decodedLong.value >> 2
     # add header byte to count
     decodedLong.bytesRead = decodedLong.bytesRead + 1
     decodedLong

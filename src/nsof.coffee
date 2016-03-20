@@ -48,26 +48,39 @@ NBoolean =
       bytesRead: 2 # head + value bytes
     )
 
-# encode null values as immediate refs
-#   kNIL=2 (byte)
+# kNIL is a special type for null values. It saves bytes in frame
+# kNIL=10 (byte)
 NNIL =
   encode: ->
-    # the Ref for NIL is 0x2. documentation sometimes refers to it with 
     # binary value 10
-    new Buffer([0x00,2])
+    new Buffer([0x10])
   decode: (buffer) ->
     # nil is null
     return(
       value: null
-      bytesRead: 2 # head + value bytes
+      bytesRead: 1 # head + value bytes
     )
 
 # encode numbers as immediate refs
 #   kImmediate=0 (byte)
 #   Immediate Ref (xlong)
 NImmediate =
-  encode: (ref) ->
-    Buffer.concat [new Buffer([0x00]), NXlong.encode(ref << 2)]
+  encode: (ref, type = 'integer') ->
+    value = switch type
+      when 'integer' then NXlong.encode(ref << 2)
+      when 'boolean'
+        # 0x1a for TRUE or 0 for false
+        if ref
+          new Buffer([0x1A])
+        else
+          new Buffer([0])
+      when 'nil'
+        # nil ref = 0x2
+        new Buffer([2])
+      else
+        throw new Error "#{type} not implemented yet"
+
+    Buffer.concat [new Buffer([0x00]), value]
   decode: (buffer) ->
     # extract binary ref value
     decodedLong = NXlong.decode(buffer.slice(1))
@@ -218,8 +231,8 @@ NFrame =
 encode = (value) ->
   switch typeof value
     when 'string' then NString.encode(value)
-    when 'number' then NImmediate.encode(value)
-    when 'boolean' then NBoolean.encode(value)
+    when 'number' then NImmediate.encode(value,'integer')
+    when 'boolean' then NImmediate.encode(value,'boolean')
     when 'object'
       if value is null
         NNIL.encode()
@@ -234,8 +247,6 @@ encode = (value) ->
 decode = (buffer) ->
   ntype = buffer[0]
   switch ntype
-    when 7 then NSymbol.decode(buffer)
-    when 8 then NString.decode(buffer)
     when 0 # immediate ref
       if buffer[1] is 0x1A
         # its a boolean true value
@@ -246,8 +257,12 @@ decode = (buffer) ->
       else
         # decode to numeric value
         NImmediate.decode(buffer)
-    when 6 then NFrame.decode(buffer)
     when 5 then NArray.decode(buffer)
+    when 6 then NFrame.decode(buffer)
+    when 7 then NSymbol.decode(buffer)
+    when 8 then NString.decode(buffer)
+    # kNIL is special type used to save some bytes
+    when 10 then NNIL.decode()
     else
       throw new Error "#{ntype} not implemented yet"
 

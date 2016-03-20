@@ -71,9 +71,21 @@ describe('NSOF', function( done ) {
 
       testCommand = EventCommand.parse('kDDesktopInfo',opts);
       commBuff = testCommand.toBinary();
-      console.log("===================================================");
-      console.log(testCommand.dataToBinary().toString('hex'));
       expect(commBuff.equals(testBuff)).to.be.true;
     });
     
+    it('should decode a complex frame object', function (){
+      complexBuff = new Buffer('020501060a07046e616d6507097369676e61747572650709546f74616c53697a6507085573656453697a6507046b696e640704696e666f0708726561644f6e6c79070d73746f726570617373776f7264070c64656661756c7453746f7265070c73746f726576657273696f6e08120049006e007400650072006e0061006c000000ffddd1bdb800ff01d2308000ff0030dfd008120049006e007400650072006e0061006c00000a0a0a001a0010000000','hex');
+      complexObj =[ { name: 'Internal',
+           signature: -143364242,
+           TotalSize: 7638048,
+           UsedSize: 800756,
+           kind: 'Internal',
+           info: null,
+           readOnly: null,
+           storepassword: null,
+           defaultStore: true,
+           storeversion: 4 } ] ;
+      expect(_.isEqual(NsOF.decode(complexBuff),complexObj)).to.be.true;
+    });
 });

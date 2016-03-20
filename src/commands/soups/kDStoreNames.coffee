@@ -21,6 +21,7 @@ following information about a store:
 }
 ###
 EventCommand      = require '../event-command'
+NsOF              = require '../../nsof'
 
 module.exports = class kDStoreNames extends EventCommand
   
@@ -35,5 +36,5 @@ module.exports = class kDStoreNames extends EventCommand
   
   dataFromBinary: (dataBuffer) ->
     @length = dataBuffer.readUInt32BE(0)
-    @data = dataBuffer
+    @data = NsOF.decode(dataBuffer.slice(4))
     

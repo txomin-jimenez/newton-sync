@@ -8,11 +8,6 @@ ncuServer.on 'new-session', (sessionObj) ->
 
   sessionObj.on "initialized", (newtonDevice) ->
     console.log "session #{sessionObj.id} initialized"
-
-    newtonDevice.storeNames()
-    .then (stores) ->
-      console.log "store info:"
-      console.log stores
   
   sessionObj.on "error", (error) ->
     console.log "session #{sessionObj.id} error:"

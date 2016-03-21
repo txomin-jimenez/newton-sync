@@ -235,7 +235,8 @@ NFrame =
 
 # main function for ENCODE NSOF data 
 encode = (value) ->
-  switch typeof value
+  type = typeof value
+  switch type
     when 'string' then NString.encode(value)
     when 'number' then NImmediate.encode(value,'integer')
     when 'boolean' then NImmediate.encode(value,'boolean')
@@ -247,7 +248,11 @@ encode = (value) ->
       else
         NFrame.encode(value)
     else
-      throw new Error "not implemented yet"
+      # encode undefined values as kNIL
+      if not value?
+        NNIL.encode()
+      else
+        throw new Error "encoding NSOF type '#{type}' not implemented yet"
     
 # main function for DECODE NSOF data 
 decode = (buffer) ->
@@ -270,7 +275,7 @@ decode = (buffer) ->
     # kNIL is special type used to save some bytes
     when 10 then NNIL.decode()
     else
-      throw new Error "#{ntype} not implemented yet"
+      throw new Error "decoding NSOF type '#{ntype}' not implemented yet"
 
 module.exports =
   

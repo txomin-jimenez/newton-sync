@@ -9,6 +9,7 @@ net               = require 'net'
 CommandBroker     = require './commands/command-broker'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
+NewtonStorage     = require './newton-storage'
 
 module.exports = class NewtonDevice
   
@@ -157,18 +158,6 @@ module.exports = class NewtonDevice
   getEncryptedKeys: ->
 
     _.pick(@,['encryptedKey1','encryptedKey2'])
-
-  storeNames: ->
-    
-    @sendCommand('kDGetStoreNames')
-    .then =>
-      @receiveCommand('kDStoreNames')
-
-  newtonTime: ->
-
-    @sendCommand('kDLastSyncTime')
-    .then =>
-      @receiveCommand('kDCurrentTime')
   
   sync: ->
 
@@ -179,6 +168,10 @@ module.exports = class NewtonDevice
     console.log "syncing ..."
     
     @_initSyncProcess()
+    .then =>
+      @_getStoreNames()
+    .then =>
+      @_syncStores()
   
   ###*
     Init sync process with connected device
@@ -203,18 +196,38 @@ module.exports = class NewtonDevice
     .then (newtonTime) =>
       console.log "Newton time: "
       console.log newtonTime
-      @sendCommand('kDGetStoreNames')
+      
+  _getStoreNames: ->
+
+    console.log "getStoreNames"
+
+    @stores = []
+    @sendCommand('kDGetStoreNames')
     .then =>
       @receiveCommand('kDStoreNames')
     .then (stores) =>
-      console.log "store info"
-      console.log stores
-      @sendCommand('kDGetSoupIDs')
-    .then =>
-      @receiveCommand('kDSoupIDs')
-      .then (soupIds) =>
-        console.log "soup ids:"
-        console.log soupIds
+      _.each stores, (store_) =>
+        console.log store_
+        store_.socket = @socket
+        @stores.push(new NewtonStorage(store_))
+  
+  _syncStores: ->
+
+    console.log "syncStores"
+
+    _.each @stores, (store) =>
+      console.log "sync store #{store.name}"
+      store.getSoups()
+
+   
+   
+    #@sendCommand('kDGetSoupIDs')
+    #.then =>
+      #@receiveCommand('kDSoupIDs')
+      #.then (soupIds) =>
+        #console.log "soup ids:"
+        #console.log soupIds
+  
   
   ###*
   @method dispose

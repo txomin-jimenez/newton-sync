@@ -7,6 +7,8 @@ var newtonSync = require( path.resolve( path.join( __dirname, '../..' ) ) );
 var NewtonDevice = newtonSync.NewtonDevice;
 
 var net = require('net');
+var Q = require('q');
+var _ = require('lodash');
 
 module.exports = MockNewton = (function(superClass) {
   extend(MockNewton, superClass);
@@ -22,12 +24,35 @@ module.exports = MockNewton = (function(superClass) {
     encryptedKey1: 0x00783c8c, //991083, //6622230,
     encryptedKey2: 0x002bb602}; //4286766539}; //5804779};
 
-  MockNewton.prototype.testData = {
-    foo: 'bar'
+  /**
+    Connect to doc. Used to mock Newton device connection in test environment
+  @method connectToDock
+  */ 
+  MockNewton.prototype.connectToDock = function(options) {
+    var deferred, opts_;
+    deferred = Q.defer();
+    opts_ = {
+      port: 3679
+    };
+    _.extend(opts_, options);
+    if (this.socket === null) {
+      this.socket = net.connect(opts_, function() {
+        return deferred.resolve();
+      });
+    }
+    return deferred.promise;
   };
-
-  MockNewton.prototype.afunction = function() {
-    return null;
+  
+  /**
+    Disconnect from dock. Used in test environment 
+  @method disconnect
+  */
+  MockNewton.prototype.disconnect = function() {
+    if (this.socket !== null) {
+      this.socket.end();
+      this.socket = null;
+      return null;
+    }
   };
 
   return MockNewton;

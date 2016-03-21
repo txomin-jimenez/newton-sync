@@ -78,18 +78,19 @@ module.exports = class NcuServer
   ###
   _newConnection: (socket) =>
     connId = socket.remoteAddress + "_" + (new Date().getTime())
-    console.log "new connection #{connId}"
-
+    
     # Create a session object
     sessionObj = new DockSession
+      id: connId
       socket: socket
+
+    @emit "new-session", sessionObj
     
     # push to connections queue  
     @_connections[connId] = sessionObj
    
     # on socket destroy remove from connection queue
     socket.on 'close', =>
-      console.log "connection #{connId} closed"
       delete @_connections?[connId]
   
   connectionsCount: ->

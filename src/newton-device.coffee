@@ -108,6 +108,9 @@ module.exports = class NewtonDevice
         'fSerialNumber'
         'fTargetProtocol'
         'name'
+        'protocolVersion'
+        'encryptedKey1'
+        'encryptedKey2'
       ]
   
     # add machine-state and event emit capability
@@ -124,7 +127,6 @@ module.exports = class NewtonDevice
   ###
   _initialize: (options) ->
 
-    #@connectToDock() if not @socket?
   
   ###*
     return a object with device info 
@@ -152,35 +154,68 @@ module.exports = class NewtonDevice
       'name'
     ]
 
-  ###*
-    Connect to doc. Used to mock Newton device connection in test environment
-  @method connectToDock
-  ###
-  connectToDock: (options) ->
+  getEncryptedKeys: ->
 
-    deferred = Q.defer()
+    _.pick(@,['encryptedKey1','encryptedKey2'])
 
-    opts_ =
-      port: 3679
-      
-    _.extend opts_, options
+  storeNames: ->
     
-    if not @socket?
-      @socket = net.connect opts_, ->
-        deferred.resolve()
+    @sendCommand('kDGetStoreNames')
+    .then =>
+      @receiveCommand('kDStoreNames')
+
+  newtonTime: ->
+
+    @sendCommand('kDLastSyncTime')
+    .then =>
+      @receiveCommand('kDCurrentTime')
   
-    deferred.promise
- 
+  sync: ->
+
+    #@listenForCommand 'all', (command) ->
+      #console.log "sync trace. comm received"
+      #console.log command
+
+    console.log "syncing ..."
+    
+    @_initSyncProcess()
+  
   ###*
-    Disconnect from dock. Used in test environment 
-  @method disconnect 
+    Init sync process with connected device
+  @method initSyncProcess  
   ###
-  disconnect: ->
-
-    if @socket?
-      @socket.end()
-      @socket = null
-
+  _initSyncProcess: ->
+    
+    # TO-DO: all sync process :)
+    
+    console.log "init sync process..."
+    @receiveCommand('kDSynchronize')
+    .then =>
+      @sendCommand('kDGetSyncOptions')
+    .then =>
+      @receiveCommand('kDSyncOptions')
+    .then (syncOptions) =>
+      console.log "received sync options:"
+      console.log syncOptions
+      @sendCommand('kDLastSyncTime')
+    .then =>
+      @receiveCommand('kDCurrentTime')
+    .then (newtonTime) =>
+      console.log "Newton time: "
+      console.log newtonTime
+      @sendCommand('kDGetStoreNames')
+    .then =>
+      @receiveCommand('kDStoreNames')
+    .then (stores) =>
+      console.log "store info"
+      console.log stores
+      @sendCommand('kDGetSoupIDs')
+    .then =>
+      @receiveCommand('kDSoupIDs')
+      .then (soupIds) =>
+        console.log "soup ids:"
+        console.log soupIds
+  
   ###*
   @method dispose
   ###

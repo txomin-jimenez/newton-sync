@@ -2,7 +2,7 @@
 
 var path = require( 'path' );
 var newtonSync = require( path.resolve( path.join( __dirname, '..' ) ) );
-var NcuServer = newtonSync.NcuServer;
+var NcuServer = newtonSync.server;
 var MockNewton = require('./fixtures/mock-newton');
 var expect = require( 'chai' ).expect;
 var net = require('net');

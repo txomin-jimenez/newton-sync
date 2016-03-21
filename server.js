@@ -1,5 +1,1 @@
-NewtonSync = require('./lib/newton-sync');
-
-new NewtonSync.NcuServer();
-
-
+require('./server/init-server');

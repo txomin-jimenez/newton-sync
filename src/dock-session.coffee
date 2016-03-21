@@ -14,7 +14,6 @@ ByteEnum          = Utils.ByteEnum
 NewtonDesCrypto   = require 'newton-des-crypto'
 
 NewtonDevice      = require './newton-device'
-DockSync          = require './dock-sync'
 
 module.exports = class DockSession
   
@@ -38,6 +37,13 @@ module.exports = class DockSession
     'kSyncIcon'     # = 1 << 4,
     'kKeyboardIcon' # = 1 << 5
   )
+  
+  ###*
+    unique ID that identifies session
+  @property id
+  ###
+  id: null
+
   ###*
     TCP socket for device comms
   @property socket
@@ -78,6 +84,7 @@ module.exports = class DockSession
     
     if options
       _.extend this, _.pick options, [
+        'id'
         'socket'
         'kDefaultTimeout'
         'sessionPwd'
@@ -89,9 +96,6 @@ module.exports = class DockSession
     
     # send/receive Newton Dock Commands
     _.extend @, CommandBroker
-    
-    # data sync features
-    _.extend @, DockSync
     
     @_initialize(options)
 
@@ -138,10 +142,12 @@ module.exports = class DockSession
     .then =>
       # At this point session is initiated. User should see dock icons in dock
       # app at Newton Device and could start sync process.
-      @_synchronize()
+      @emit "initialized", @newtonDevice
+      @newtonDevice.sync()
     .catch (error) =>
-      console.log "init session error"
-      console.log error
+      #console.log "init session error"
+      #console.log error
+      @emit "error", error
       #console.trace()
       # if something went wrong abort session. Client will have to reconnect
       # if error persist it must be a bug or something
@@ -166,22 +172,22 @@ module.exports = class DockSession
   ###
   _exchangeDevicesInfo: ->
     
+    newtonNameInfo = null
     @receiveCommand('kDNewtonName')
-    .then (newtonNameInfo) =>
-      console.log newtonNameInfo?.name
+    .then (newtonNameInfo_) =>
+      newtonNameInfo = newtonNameInfo_
       # kDNewtonName return a set of Newton device info not only a 'name'
-      newtonNameInfo.socket = @socket
-      @newtonDevice = new NewtonDevice newtonNameInfo
       # TO-DO. at this point we do something to load previous sync file and
       # things like that
       @sendCommand('kDDesktopInfo', @desktopInfo)
     .then =>
       @receiveCommand('kDNewtonInfo')
     .then (newtonInfo) =>
-      # TO-DO: save encrypted keys and protocol version for later check
-      console.log "newton info: "
-      console.log newtonInfo
-      @_newtonInfo = newtonInfo
+      newtonNameInfo.socket = @socket
+      newtonNameInfo.protocolVersion = newtonInfo.protocolVersion
+      newtonNameInfo.encryptedKey1 = newtonInfo.encryptedKey1
+      newtonNameInfo.encryptedKey2 = newtonInfo.encryptedKey2
+      @newtonDevice = new NewtonDevice newtonNameInfo
   
   ###*
     Init dock info for session negotiation
@@ -198,6 +204,7 @@ module.exports = class DockSession
       encryptedKey1: key1
       encryptedKey2: key2
       sessionType: DockSession.sessionTypes.kSettingUpSession
+      #sessionType:  DockSession.sessionTypes.kSynchronizeSession
       allowSelectiveSync: 0 # TO-DO. this will be adjusted when we can 
                             # retrieve previous sync file
     @desktopInfo.desktopApps = [
@@ -227,10 +234,7 @@ module.exports = class DockSession
     @receiveCommand('kDPassword')
     .then (receivedKey) =>
       # check if received key is encrypted correctly with session password
-      console.log ".................received key"
       receivedKey = @_decryptKey(receivedKey)
-      console.log receivedKey
-      console.log _.pick(@desktopInfo,['encryptedKey1','encryptedKey2'])
      
       if receivedKey.encryptedKey1 is @desktopInfo.encryptedKey1 and _
         receivedKey.encryptedKey2 is @desktopInfo.encryptedKey2
@@ -238,12 +242,13 @@ module.exports = class DockSession
         # if OK newton will start sync process else will respond with error
         # in that case will abort session as something strange happened with
         # password and keys (must be a bug)
-        newtonKey = _.pick(@_newtonInfo,['encryptedKey1','encryptedKey2'])
+        newtonKey = @newtonDevice.getEncryptedKeys()
         sendKeys = @_encryptKey(newtonKey)
         @sendCommand('kDPassword', sendKeys)
       else
         @sendCommand('kDPWWrong')
         .then =>
+          # try again. TO-DO: limit to 3 times
           @_negotiatePassword()
 
   ###*
@@ -288,15 +293,16 @@ module.exports = class DockSession
   
   
   ###*
+    End session with device
   @method endSession
   ###
   endSession: ->
 
-    # ...
+    # wait a bit, Newtons are getting old and they need their time
     setTimeout =>
-      console.log "end session with device"
-      
       @socket.end()
+
+      @emit "finished", this
 
       @dispose()
     , 1000

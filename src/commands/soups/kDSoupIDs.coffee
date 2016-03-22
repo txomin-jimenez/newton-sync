@@ -9,7 +9,7 @@ This command is sent in response to a kDGetSoupIDs command. It returns all
 the IDs from the current soup.
 ###
 EventCommand      = require '../event-command'
-NsOF              = require '../../nsof'
+_                 = require 'lodash'
 
 module.exports = class kDSoupIDs extends EventCommand
   
@@ -27,7 +27,10 @@ module.exports = class kDSoupIDs extends EventCommand
     @length = dataBuffer.readUInt32BE(0)
     count_ = dataBuffer.readUInt32BE(4)
     if count_ > 0
-      data_ = NsOF.decode(dataBuffer.slice(8))
+      data_ = new Array(count_)
+      _.forEach data_, (value, key) ->
+        value_ = dataBuffer.readUInt32BE(8 + (key * 4))
+        data_[key] = value_
     else
       data_ = null
     @data =

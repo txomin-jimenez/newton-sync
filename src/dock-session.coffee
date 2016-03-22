@@ -152,8 +152,11 @@ module.exports = class DockSession
       # if something went wrong abort session. Client will have to reconnect
       # if error persist it must be a bug or something
     .fin =>
-      # end session because we have finished
-      @endSession()
+      #setTimeout =>
+        ## end session because we have finished
+        #@endSession()
+      #5000
+      @newtonDevice.sync()
   
   ###*
     waits for device request and sends initiate docking as response

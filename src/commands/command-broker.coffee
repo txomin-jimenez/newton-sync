@@ -76,6 +76,11 @@ module.exports =
       if commandName in [command.name, command.id]
         # the command received is the one we were waiting
         deferred.resolve command.data
+      else if command.id is 'unkn'
+        # unknown command received from Newton. something went wrong
+        deferred.reject
+          errorCode: -28012
+          reason: "unknown command '#{command.data.unknownCommand}' "
       else if command.id is 'dres'
         # if a KDResult is received receiving a command it indicates some
         # type of dock error. throw it to handle in the process

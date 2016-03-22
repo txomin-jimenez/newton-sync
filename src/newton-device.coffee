@@ -172,6 +172,8 @@ module.exports = class NewtonDevice
       @_getStoreNames()
     .then =>
       @_syncStores()
+    .then =>
+      @sendCommand('kDOperationDone')
   
   ###*
     Init sync process with connected device
@@ -201,7 +203,7 @@ module.exports = class NewtonDevice
 
     console.log "getStoreNames"
 
-    @stores = []
+    @stores = {}
     @sendCommand('kDGetStoreNames')
     .then =>
       @receiveCommand('kDStoreNames')
@@ -209,24 +211,25 @@ module.exports = class NewtonDevice
       _.each stores, (store_) =>
         console.log store_
         store_.socket = @socket
-        @stores.push(new NewtonStorage(store_))
+        @stores[store_.name] = new NewtonStorage(store_)
   
   _syncStores: ->
 
     console.log "syncStores"
 
-    _.each @stores, (store) =>
-      console.log "sync store #{store.name}"
-      store.getSoups()
+    #Q.all(_.map(@stores, (store) =>
+      #console.log "sync store #{store.name}"
+      #store.sync()
+    #)).then =>
+    _.reduce @stores, (soFar, store) ->
+      soFar.then ->
+        store.sync()
+    , Q()
+      
+
 
    
    
-    #@sendCommand('kDGetSoupIDs')
-    #.then =>
-      #@receiveCommand('kDSoupIDs')
-      #.then (soupIds) =>
-        #console.log "soup ids:"
-        #console.log soupIds
   
   
   ###*

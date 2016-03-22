@@ -23,8 +23,13 @@ module.exports = class kDSoupIDs extends EventCommand
     super
   
   dataFromBinary: (dataBuffer) ->
+    console.log dataBuffer.toString('hex')
     @length = dataBuffer.readUInt32BE(0)
+    count_ = dataBuffer.readUInt32BE(4)
+    if count_ > 0
+      data_ = NsOF.decode(dataBuffer.slice(8))
+    else
+      data_ = null
     @data =
-      count: dataBuffer.readUInt32BE(4)
-      ids: NsOF.decode(dataBuffer.slice(8))
-    
+      count: count_
+      ids: data_

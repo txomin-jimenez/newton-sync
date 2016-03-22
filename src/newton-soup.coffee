@@ -67,9 +67,29 @@ module.exports = class NewtonSoup
   _initialize: (options) ->
   
 
+  sync: ->
+    console.log ".....................................sync #{@name} ..."
+
+    @sendCommand('kDSetCurrentSoup', @name)
+    .then =>
+      @receiveCommand('kDResult')
+    .then (result_)=>
+      console.log "set soup result"
+      console.log result_
+      @sendCommand('kDLastSyncTime')
+    .then =>
+      @receiveCommand('kDCurrentTime')
+    .then =>
+      @sendCommand('kDGetSoupIDs')
+    .then =>
+      @receiveCommand('kDSoupIDs')
+    .then (soupIds) =>
+      console.log "soup ids:"
+      console.log soupIds
+
+
   toFrame: ->
 
-  
 
   ###*
   @method dispose

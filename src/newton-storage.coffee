@@ -9,6 +9,8 @@ CommandBroker     = require './commands/command-broker'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 
+NewtonSoup        = require './newton-soup'
+
 module.exports = class NewtonStorage
   
   ###*
@@ -64,7 +66,22 @@ module.exports = class NewtonStorage
   ###
   _initialize: (options) ->
   
+  sync : ->
 
+    syncResults = ["Internal", false, "Calendar", 0]
+    @getSoups()
+    .then =>
+      #Q.all(_.map(@soups, (soup) ->
+        #soup.sync()
+      #))
+      # sync soups one by one
+      _.reduce @soups, (soFar, soup) ->
+        soFar.then ->
+          soup.sync()
+      , Q()
+    #.then =>
+      #@sendCommand('kDSyncResults',syncResults)
+  
   toFrame: ->
 
     return(
@@ -75,14 +92,19 @@ module.exports = class NewtonStorage
   
   getSoups: ->
     console.log "getSoups..."
+    
     frame = @toFrame()
-    console.log frame
+    
+    @soups = {}
     @sendCommand('kDSetStoreGetNames', frame)
     .then =>
       @receiveCommand('kDSoupNames')
     .then (soups_) =>
-      console.log "soup info"
-      console.log soups_
+      _.each soups_, (soupName) =>
+        @soups[soupName] = new NewtonSoup
+          name: soupName
+          socket: @socket
+
   
   ###*
   @method dispose

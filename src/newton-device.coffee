@@ -174,6 +174,7 @@ module.exports = class NewtonDevice
       @_syncStores()
     .then =>
       @sendCommand('kDOperationDone')
+      @emit 'synced'
   
   ###*
     Init sync process with connected device
@@ -184,8 +185,15 @@ module.exports = class NewtonDevice
     # TO-DO: all sync process :)
     
     console.log "init sync process..."
+    #@receiveCommand('kDRequestToSync')
     @receiveCommand('kDSynchronize')
     .then =>
+      #@sendCommand('kDDesktopControl')
+    #.then =>
+      #@sendCommand('kDSynchronize')
+    #.then =>
+      #@receiveCommand('kDResult')
+    #.then =>
       @sendCommand('kDGetSyncOptions')
     .then =>
       @receiveCommand('kDSyncOptions')
@@ -225,12 +233,6 @@ module.exports = class NewtonDevice
       soFar.then ->
         store.sync()
     , Q()
-      
-
-
-   
-   
-  
   
   ###*
   @method dispose

@@ -68,19 +68,14 @@ module.exports = class NewtonStorage
   
   sync : ->
 
-    syncResults = ["Internal", false, "Calendar", 0]
     @getSoups()
     .then =>
-      #Q.all(_.map(@soups, (soup) ->
-        #soup.sync()
-      #))
       # sync soups one by one
-      _.reduce @soups, (soFar, soup) ->
-        soFar.then ->
-          soup.sync()
-      , Q()
-    #.then =>
-      #@sendCommand('kDSyncResults',syncResults)
+      #_.reduce @soups, (soFar, soup) ->
+        #soFar.then ->
+          #soup.sync()
+      #, Q()
+      @soups.Names.sync()
   
   toFrame: ->
 

@@ -20,4 +20,3 @@ module.exports = class kDGetSoupIDs extends EventCommand
 
   constructor: ->
     super
-  

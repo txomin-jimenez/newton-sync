@@ -70,23 +70,37 @@ module.exports = class NewtonSoup
   sync: ->
     console.log ".....................................sync #{@name} ..."
 
+    @entries = {}
+
     @sendCommand('kDSetCurrentSoup', @name)
     .then =>
       @receiveCommand('kDResult')
     .then (result_)=>
-      console.log "set soup result"
-      console.log result_
-      @sendCommand('kDLastSyncTime')
+      @sendCommand('kDSendSoup')
     .then =>
-      @receiveCommand('kDCurrentTime')
-    .then =>
-      @sendCommand('kDGetSoupIDs')
-    .then =>
-      @receiveCommand('kDSoupIDs')
-    .then (soupIds) =>
-      console.log "soup ids:"
-      console.log soupIds
+      @listenForCommand('kDEntry',null, @processEntry, 'kDBackupSoupDone')
+      #console.log "set soup result"
+      #console.log result_
+      #@sendCommand('kDLastSyncTime')
+    #.then =>
+      #@receiveCommand('kDCurrentTime')
+    #.then =>
+      #@sendCommand('kDGetSoupIDs')
+    #.then =>
+      #@receiveCommand('kDSoupIDs')
+    #.then (soupIds) =>
+      #console.log "soup ids:"
+      #console.log soupIds
 
+  processEntry: (entryData) =>
+    entryID = entryData._uniqueID
+    if entryID?
+      console.log "(#{@name}) processEntry: #{entryID}"
+      #console.log entryData
+      @entries[entryID] = entryData
+    else
+      console.log "invalid entry?:"
+      console.log entryData
 
   toFrame: ->
 

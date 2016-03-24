@@ -27,7 +27,17 @@ module.exports =
     if @isProcessing()
       _msg = "(#{@constructor.name}): cannot process. event in process"
       throw new Error _msg
-  
+ 
+  delay: (delayMs) ->
+
+    deferred = Q.defer()
+
+    xx = setTimeout ->
+      deferred.resolve()
+    , delayMs
+
+    deferred.promise
+
   ###*
     sends a command message to Newton device
     accepts command name or ID, ex: 'kDNewtonName' or 'name'
@@ -44,19 +54,29 @@ module.exports =
     @processFinish()
     Q(_bytes)
 
-  listenForCommand: (commandName, data, cb) ->
+  listenForCommand: (commandName, data, cb, finishCmdName) ->
     @_checkSocket()
+
+    result = Q.defer()
 
     if typeof data is 'function'
       cb = data
     
-    @socket.on 'data', (data) =>
+    listenCb = (data) =>
       command = EventCommand.parseFromBinary(data)
       console.log "#{@constructor.name} listening for #{commandName}, #{command.name} command received"
-      if commandName is 'all'
+      if finishCmdName in [command.name, command.id]
+        console.log "finish cmd received. finish"
+        @socket.removeListener('data',listenCb)
+        result.resolve(command.data)
+      else if commandName is 'all'
         cb(command)
       else if commandName in [command.name, command.id]
         cb(command.data)
+    
+    @socket.on 'data', listenCb
+
+    result.promise
 
   ###*
     waits for a specific command from Newton device to arrive

@@ -88,7 +88,7 @@ module.exports = class EventCommand
   ###
   @parseFromBinary: (buffer) ->
     loadCommClasses() # load classes if not loaded yet
-    console.log buffer
+    #console.log buffer
     commId = EventCommand.getCommandId(buffer)
     # get correct class from events object
     commClass = dockCommands[commId]

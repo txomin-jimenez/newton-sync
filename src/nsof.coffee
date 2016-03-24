@@ -62,6 +62,47 @@ NNIL =
       bytesRead: 1 # head + value bytes
     )
 
+NkCharacter =
+  encode: (value) ->
+    throw new Error "encode kCharacter not implemented yet"
+  decode: (buffer) ->
+
+    return(
+      value: String.fromCharCode(buffer[0])
+      bytesRead: 2
+    )
+
+NUniChar =
+  encode: (value) ->
+    throw new Error "encode UniChar not implemented yet"
+  decode: (buffer) ->
+    binaryValue = buffer.slice(1, 3)
+    return(
+      value: Utils.unichar.toString(binaryValue)
+      bytesRead: 3
+    )
+
+NBinary =
+  encode: (value) ->
+    throw new Error "encode Binary not implemented yet"
+  decode: (buffer, precedents) ->
+    bytesRead_ = 1
+    binaryLength = NXlong.decode(buffer.slice(1))
+    bytesRead_ = bytesRead_ + binaryLength.bytesRead
+    # decode binary Class. Usually it's a Symbol but someone could use
+    # kPrecedent so we have to use generic decode function
+    binaryClass = decode(buffer.slice(bytesRead_), precedents)
+    bytesRead_ = bytesRead_ + binaryClass.bytesRead
+    binaryData = buffer.slice(bytesRead_, bytesRead_ + binaryLength.value)
+    bytesRead_ = bytesRead_ + binaryLength.value
+    
+    return(
+      value:
+        _binaryClass: binaryClass.value
+        _binaryData: Utils.unichar.toString(binaryData)
+      bytesRead: bytesRead_
+    )
+
 # Immediate objects are represented by kImmediate followed by a Ref that 
 # gives the value of the immediate 
 #   kImmediate=0 (byte)
@@ -112,7 +153,7 @@ NSymbol =
     stringLength = NXlong.decode(buffer.slice(1))
     stringVal  = buffer.slice(2,2 + stringLength.value)
     return(
-      value: stringVal
+      value: stringVal.toString('ascii')
       bytesRead: 1 + stringLength.bytesRead + stringLength.value
     )
 
@@ -139,11 +180,55 @@ NString =
       bytesRead: 1 + stringLengthXlong.bytesRead + stringLengthXlong.value
     )
 
+NKPrecedent =
+  encode: (value) ->
+    throw new Error "encode Precedents not implemented yet"
+  decode: (buffer, precedents) ->
+    precedentId = NXlong.decode(buffer.slice(1))
+
+    return(
+      value: precedents[precedentId.value].value
+      bytesRead: 1 + precedentId.bytesRead
+    )
+
+NArray =
+  encode: (value) ->
+    console.log value
+    throw new Error "encode NArray not implemented yet"
+
+  decode: (buffer, precedents) ->
+    arrayByteLength = 1 # head byte
+    arrayLength = NXlong.decode(buffer.slice(1))
+    arrayByteLength = arrayByteLength + arrayLength.bytesRead
+    
+    # decode array Class. Usually it's a Symbol but someone could use
+    # kPrecedent so we have to use generic decode function
+    arrayClass = decode(buffer.slice(arrayByteLength), precedents)
+    arrayByteLength = arrayByteLength + arrayClass.bytesRead
+    
+    resArray = new Array(arrayLength.value)
+    # continue reading values until result array is completed
+    _.forEach resArray, (value, key) ->
+      # extract and decode a value
+      value_ = decode(buffer.slice(arrayByteLength), precedents)
+      # add it to result array
+      resArray[key] = value_.value
+      # sum read bytes
+      arrayByteLength = arrayByteLength + value_.bytesRead
+    #### 
+   
+    return(
+      value:
+        _arrayClass: arrayClass.value
+        _arrayData: resArray
+      bytesRead: arrayByteLength # head byte is summed earlier
+    )
+    
 # encode array to Newton plain array
 #   kPlainArray=5 (byte)
 #   Number of slots (xlong)
 #   Slot values in ascending order (objects)
-NArray =
+NPlainArray =
   encode: (arrayObject) ->
     arrayHeader = new Buffer(1)
     arrayHeader.writeUInt8(5,0) # kPlainArray
@@ -156,7 +241,7 @@ NArray =
       NXlong.encode(arrayObject.length)
     ].concat(slotValues)
 
-  decode: (buffer) ->
+  decode: (buffer, precedents) ->
     arrayByteLength = 1 # head byte
     arrayLength = NXlong.decode(buffer.slice(1))
     arrayByteLength = arrayByteLength + arrayLength.bytesRead
@@ -165,7 +250,7 @@ NArray =
     # continue reading values until result array is completed
     _.forEach resArray, (value, key) ->
       # extract and decode a value
-      value_ = decode(buffer.slice(arrayByteLength))
+      value_ = decode(buffer.slice(arrayByteLength), precedents)
       # add it to result array
       resArray[key] = value_.value
       # sum read bytes
@@ -201,7 +286,7 @@ NFrame =
 
     # concat arrays into an array of buffers and concat into a new buffer
     Buffer.concat [frameHeader, NXlong.encode(keyCount)].concat(slotTags,slotValues)
-  decode: (buffer) ->
+  decode: (buffer, precedents) ->
     objByteLength = 1 # head byte
     keyLength = NXlong.decode(buffer.slice(1))
     objByteLength = objByteLength + keyLength.bytesRead
@@ -210,7 +295,7 @@ NFrame =
     # read key names
     _.forEach keyArray, (value, key) ->
       # extract and decode a value
-      value_ = decode(buffer.slice(objByteLength))
+      value_ = decode(buffer.slice(objByteLength), precedents)
       # add it to result array
       keyArray[key] = value_.value
       # sum read bytes
@@ -220,8 +305,10 @@ NFrame =
     # continue reading values and assigning them to key values
     resObj = {}
     _.forEach keyArray, (keyName) ->
+      #console.log "------decode #{keyName}:"
       # extract and decode a value
-      value_ = decode(buffer.slice(objByteLength))
+      value_ = decode(buffer.slice(objByteLength), precedents)
+      #console.log value_.value
       # assign it to key
       resObj[keyName] = value_.value
       # sum read bytes
@@ -244,7 +331,7 @@ encode = (value) ->
       if value is null
         NNIL.encode()
       if value instanceof Array
-        NArray.encode(value)
+        NPlainArray.encode(value)
       else
         NFrame.encode(value)
     else
@@ -255,9 +342,9 @@ encode = (value) ->
         throw new Error "encoding NSOF type '#{type}' not implemented yet"
     
 # main function for DECODE NSOF data 
-decode = (buffer) ->
+decode = (buffer, precedents = []) ->
   ntype = buffer[0]
-  switch ntype
+  result = switch ntype
     when 0 # immediate ref
       if buffer[1] is 0x1A
         # its a boolean true value
@@ -268,14 +355,23 @@ decode = (buffer) ->
       else
         # decode to numeric value
         NImmediate.decode(buffer)
-    when 5 then NArray.decode(buffer)
-    when 6 then NFrame.decode(buffer)
+    when 1 then NkCharacter.decode(buffer)
+    when 2 then NUniChar.decode(buffer)
+    when 3 then NBinary.decode(buffer, precedents)
+    when 4 then NArray.decode(buffer, precedents)
+    when 5 then NPlainArray.decode(buffer, precedents)
+    when 6 then NFrame.decode(buffer, precedents)
     when 7 then NSymbol.decode(buffer)
     when 8 then NString.decode(buffer)
+    when 9 then NKPrecedent.decode(buffer, precedents)
     # kNIL is special type used to save some bytes
     when 10 then NNIL.decode()
     else
       throw new Error "decoding NSOF type '#{ntype}' not implemented yet"
+
+  precedents.push result
+
+  result
 
 module.exports =
   

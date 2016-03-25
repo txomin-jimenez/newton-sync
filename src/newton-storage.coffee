@@ -73,10 +73,7 @@ module.exports = class NewtonStorage
       # sync soups one by one
       _.reduce @soups, (soFar, soup) ->
         soFar.then ->
-          if soup.name is 'Packages'
-            Q()
-          else
-            soup.sync()
+          soup.sync()
       , Q()
       #@soups.Names.sync()
   
@@ -99,9 +96,10 @@ module.exports = class NewtonStorage
       @receiveCommand('kDSoupNames')
     .then (soups_) =>
       _.each soups_, (soupName) =>
-        @soups[soupName] = new NewtonSoup
-          name: soupName
-          socket: @socket
+        if soupName isnt 'Packages'
+          @soups[soupName] = new NewtonSoup
+            name: soupName
+            socket: @socket
 
   
   ###*

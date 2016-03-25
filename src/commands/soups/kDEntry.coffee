@@ -26,5 +26,11 @@ module.exports = class kDEntry extends EventCommand
   dataFromBinary: (dataBuffer) ->
     #console.log dataBuffer.toString('hex')
     @length = dataBuffer.readUInt32BE(0)
-    @data = NsOF.decode(dataBuffer.slice(4))
+    try
+      @data = NsOF.decode(dataBuffer.slice(4))
+    catch err
+      console.log "error decoding kDEntry"
+      console.log dataBuffer.slice(4).toString('hex')
+      throw err
+
     

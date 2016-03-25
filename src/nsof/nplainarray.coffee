@@ -1,5 +1,5 @@
 _                 = require 'lodash'
-NXlong            = require './nxlong'
+NXLong            = require './nxlong'
 
 module.exports =
 
@@ -18,13 +18,13 @@ module.exports =
     # concat arrays into an array of buffers and concat into a new buffer
     Buffer.concat [
       arrayHeader
-      NXlong.encode(arrayObject.length)
+      NXLong.encode(arrayObject.length)
     ].concat(slotValues)
 
   decode: (buffer, precedents) ->
     decode= require('./index').decode
     arrayByteLength = 1 # head byte
-    arrayLength = NXlong.decode(buffer.slice(1))
+    arrayLength = NXLong.decode(buffer.slice(1))
     arrayByteLength = arrayByteLength + arrayLength.bytesRead
     
     resArray = new Array(arrayLength.value)

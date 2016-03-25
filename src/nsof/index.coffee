@@ -1,12 +1,12 @@
 _                 = require 'lodash'
 Utils             = require '../utils'
 
-NXlong            = require './nxlong'
 NBoolean          = require './nboolean'
 NNIL              = require './nnil'
 NkCharacter       = require './nkcharacter'
 NUniChar          = require './nunichar'
 NBinary           = require './nbinary'
+NLargeBinary      = require './nlargebinary'
 NImmediate        = require './nimmediate'
 NSymbol           = require './nsymbol'
 NString           = require './nstring'
@@ -14,6 +14,8 @@ NKPrecedent       = require './nkprecedent'
 NArray            = require './narray'
 NPlainArray       = require './nplainarray'
 NFrame            = require './nframe'
+NSmallRect        = require './nsmallrect'
+
 
 ###*
     (NSOF) Newton Streamed Object encoding / decoding
@@ -56,6 +58,24 @@ module.exports =
     buffer = buffer.slice(1) if isRoot
     
     ntype = buffer[0]
+    
+    # we have to populate precedents array in order, but we have to decode 
+    # child objects first so we push an empty object ref and replace when
+    # object is fully decoded
+    precedentRefObj =
+      value: null
+    
+    # The tag byte is followed an ID, called a precedent ID. The IDs are 
+    # assigned consecutively, starting with 0 for the root object, and are used
+    # by the kPrecedent tag to generate backward pointer references to objects 
+    # that have already been introduced. Note that no object may be traversed 
+    # more than once; any pointers to previously traversed objects must be 
+    # represented with kPrecedent. Immediate objects cannot be precedents; all
+    # precedents are heap objects (binary objects, arrays, and frames).
+    if [3,4,5,6,7,8,11,12].indexOf(ntype) > -1
+      # populate precedent ref array
+      precedents.push precedentRefObj
+    
     result = switch ntype
       when 0 # immediate ref
         if buffer[1] is 0x1A
@@ -78,10 +98,12 @@ module.exports =
       when 9 then NKPrecedent.decode(buffer, precedents)
       # kNIL is special type used to save some bytes
       when 10 then NNIL.decode()
+      when 11 then NSmallRect.decode(buffer)
+      when 12 then NLargeBinary.decode(buffer,precedents)
       else
-        throw new Error "decoding NSOF type '#{ntype}' not implemented yet"
-
-    precedents.push result
+        throw new Error "decoding NSOF type '#{ntype}' is unknown"
+    
+    precedentRefObj.value = result.value
     
     if isRoot
       result.value

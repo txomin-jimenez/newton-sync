@@ -1,4 +1,4 @@
-NXlong = require './nxlong'
+NXLong = require './nxlong'
 
 module.exports =
   
@@ -8,7 +8,7 @@ module.exports =
   #   Immediate Ref (xlong)
   encode: (ref, type = 'integer') ->
     value = switch type
-      when 'integer' then NXlong.encode(ref << 2)
+      when 'integer' then NXLong.encode(ref << 2)
       when 'boolean'
         # 0x1a for TRUE or 0 for false
         if ref
@@ -25,7 +25,7 @@ module.exports =
   
   decode: (buffer) ->
     # extract binary ref value
-    decodedLong = NXlong.decode(buffer.slice(1))
+    decodedLong = NXLong.decode(buffer.slice(1))
     # check for TRUE ref
     if decodedLong.value is 0x1A
       decodedLong.value = true

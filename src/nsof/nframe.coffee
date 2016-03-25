@@ -1,6 +1,6 @@
 _                 = require 'lodash'
 
-NXlong = require './nxlong'
+NXLong = require './nxlong'
 NSymbol = require './nsymbol'
 
 module.exports =
@@ -28,12 +28,12 @@ module.exports =
       slotValues.push encode(value, isRoot = false)
 
     # concat arrays into an array of buffers and concat into a new buffer
-    Buffer.concat [frameHeader, NXlong.encode(keyCount)].concat(slotTags,slotValues)
+    Buffer.concat [frameHeader, NXLong.encode(keyCount)].concat(slotTags,slotValues)
   
   decode: (buffer, precedents) ->
     decode= require('./index').decode
     objByteLength = 1 # head byte
-    keyLength = NXlong.decode(buffer.slice(1))
+    keyLength = NXLong.decode(buffer.slice(1))
     objByteLength = objByteLength + keyLength.bytesRead
     
     keyArray = new Array(keyLength.value)

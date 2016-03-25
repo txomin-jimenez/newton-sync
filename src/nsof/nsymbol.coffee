@@ -1,4 +1,4 @@
-NXlong = require './nxlong'
+NXLong = require './nxlong'
 
 module.exports =
   
@@ -10,12 +10,12 @@ module.exports =
     symbolHeader.writeUInt8(7,0) # kSymbol=7
     Buffer.concat [
       symbolHeader
-      NXlong.encode(key.length)
+      NXLong.encode(key.length)
       Buffer(key,'ascii')
     ]
   
   decode: (buffer) ->
-    stringLength = NXlong.decode(buffer.slice(1))
+    stringLength = NXLong.decode(buffer.slice(1))
     stringVal  = buffer.slice(2,2 + stringLength.value)
     return(
       value: stringVal.toString('ascii')

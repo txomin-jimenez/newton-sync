@@ -1,4 +1,4 @@
-NXlong            = require './nxlong'
+NXLong            = require './nxlong'
 
 module.exports =
   
@@ -6,7 +6,7 @@ module.exports =
     throw new Error "encode Precedents not implemented yet"
   
   decode: (buffer, precedents) ->
-    precedentId = NXlong.decode(buffer.slice(1))
+    precedentId = NXLong.decode(buffer.slice(1))
 
     return(
       value: precedents[precedentId.value].value

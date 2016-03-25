@@ -1,6 +1,6 @@
 Utils             = require '../utils'
 
-NXlong            = require './nxlong'
+NXLong            = require './nxlong'
 
 module.exports =
 
@@ -14,12 +14,12 @@ module.exports =
     stringHeader.writeUInt8(8,0) # kString = 8
     Buffer.concat [
       stringHeader
-      NXlong.encode(unicharValue.length)
+      NXLong.encode(unicharValue.length)
       unicharValue
     ]
   
   decode: (buffer) ->
-    stringLengthXlong = NXlong.decode(buffer.slice(1))
+    stringLengthXlong = NXLong.decode(buffer.slice(1))
     binaryValue = buffer.slice(2, 2 + stringLengthXlong.value)
     return(
       value: Utils.unichar.toString(binaryValue)

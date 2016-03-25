@@ -71,11 +71,14 @@ module.exports = class NewtonStorage
     @getSoups()
     .then =>
       # sync soups one by one
-      #_.reduce @soups, (soFar, soup) ->
-        #soFar.then ->
-          #soup.sync()
-      #, Q()
-      @soups.Names.sync()
+      _.reduce @soups, (soFar, soup) ->
+        soFar.then ->
+          if soup.name is 'Packages'
+            Q()
+          else
+            soup.sync()
+      , Q()
+      #@soups.Names.sync()
   
   toFrame: ->
 

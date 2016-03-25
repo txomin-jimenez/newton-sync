@@ -1,5 +1,5 @@
 _                 = require 'lodash'
-NXlong            = require './nxlong'
+NXLong            = require './nxlong'
 
 module.exports =
   
@@ -11,7 +11,7 @@ module.exports =
   decode: (buffer, precedents, decode) ->
     decode= require('./index').decode
     arrayByteLength = 1 # head byte
-    arrayLength = NXlong.decode(buffer.slice(1))
+    arrayLength = NXLong.decode(buffer.slice(1))
     arrayByteLength = arrayByteLength + arrayLength.bytesRead
     
     # decode array Class. Usually it's a Symbol but someone could use

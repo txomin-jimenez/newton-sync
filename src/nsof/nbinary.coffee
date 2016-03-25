@@ -10,7 +10,7 @@ module.exports =
   decode: (buffer, precedents) ->
     decode= require('./index').decode
     bytesRead_ = 1
-    binaryLength = NXlong.decode(buffer.slice(1))
+    binaryLength = NXLong.decode(buffer.slice(1))
     bytesRead_ = bytesRead_ + binaryLength.bytesRead
     # decode binary Class. Usually it's a Symbol but someone could use
     # kPrecedent so we have to use generic decode function
@@ -22,6 +22,7 @@ module.exports =
     return(
       value:
         _binaryClass: binaryClass.value
-        _binaryData: Utils.unichar.toString(binaryData)
+        # TO-DO: convert binaryData to NewtonScript format (if possible)
+        _binaryData: binaryData #Utils.unichar.toString(binaryData)
       bytesRead: bytesRead_
     )

@@ -96,7 +96,7 @@ module.exports = class NewtonSoup
     entryID = entryData._uniqueID
     if entryID?
       console.log "(#{@name}) processEntry: #{entryID}"
-      #console.log entryData
+      console.log entryData
       @entries[entryID] = entryData
     else
       console.log "invalid entry?:"

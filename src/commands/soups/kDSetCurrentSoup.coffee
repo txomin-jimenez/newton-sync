@@ -35,8 +35,5 @@ module.exports = class kDSetCurrentSoup extends EventCommand
     lengthBuff = new Buffer(4)
     lengthBuff.writeUInt32BE(frameData.length,0)
     
-    console.log @data
-    console.log frameData.toString('hex')
-
     Buffer.concat [lengthBuff,frameData]
     

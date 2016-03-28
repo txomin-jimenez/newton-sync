@@ -27,7 +27,12 @@ module.exports =
     if @isProcessing()
       _msg = "(#{@constructor.name}): cannot process. event in process"
       throw new Error _msg
- 
+  
+  ###*
+    wait X milliseconds asynchronously. Sometimes we need to wait a bit, if
+    we go too fast process could fail
+  @method delay
+  ###
   delay: (delayMs) ->
 
     deferred = Q.defer()
@@ -44,14 +49,14 @@ module.exports =
   @method sendCommand 
   ###
   sendCommand: (command, data) ->
-    @_checkProcessing()
+    #@_checkProcessing()
     @_checkSocket()
-    @processBegin()
+    #@processBegin()
     console.log "#{@constructor.name} send command #{command}"
     command = EventCommand.parse command, data
     data_ = command.toBinary()
     _bytes = @socket.write(data_)
-    @processFinish()
+    #@processFinish()
     Q(_bytes)
 
   listenForCommand: (commandName, data, cb, finishCmdName) ->
@@ -84,9 +89,9 @@ module.exports =
   @method receiveCommand
   ###
   receiveCommand: (commandName) ->
-    @_checkProcessing()
+    #@_checkProcessing()
     @_checkSocket()
-    @processBegin()
+    #@processBegin()
     deferred = Q.defer()
 
     console.log "#{@constructor.name} waiting for #{commandName}"
@@ -127,7 +132,7 @@ module.exports =
         deferred.reject
           errorCode: -28012
           reason: "Expected #{commandName}, received #{command.name}."
-      @processFinish()
+      #@processFinish()
 
     deferred.promise
   

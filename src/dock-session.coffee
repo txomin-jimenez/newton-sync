@@ -142,21 +142,19 @@ module.exports = class DockSession
     .then =>
       # At this point session is initiated. User should see dock icons in dock
       # app at Newton Device and could start sync process.
+      @newtonDevice.initSyncSession()
+    .then =>
+      # inform consumers everything is ready for device manipulation
       @emit "initialized", @newtonDevice
-      @newtonDevice.sync()
+
     .catch (error) =>
-      #console.log "init session error"
-      #console.log error
       @emit "error", error
       #console.trace()
       # if something went wrong abort session. Client will have to reconnect
       # if error persist it must be a bug or something
-    .fin =>
-      #setTimeout =>
-        ## end session because we have finished
-        #@endSession()
-      #5000
-      @newtonDevice.sync()
+      setTimeout =>
+        @endSession()
+      , 1000
   
   ###*
     waits for device request and sends initiate docking as response
@@ -206,6 +204,7 @@ module.exports = class DockSession
       desktopType: 0 # 0 for Macintosh and 1 for Windows.
       encryptedKey1: key1
       encryptedKey2: key2
+      # kSynchronizeSession type didn't work so will use kSettingUpSession
       sessionType: DockSession.sessionTypes.kSettingUpSession
       #sessionType:  DockSession.sessionTypes.kSynchronizeSession
       allowSelectiveSync: 0 # TO-DO. this will be adjusted when we can 

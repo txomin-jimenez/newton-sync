@@ -65,28 +65,16 @@ module.exports = class NewtonStorage
   @method initialize
   ###
   _initialize: (options) ->
-  
-  sync : ->
 
-    @getSoups()
+
+  setCurrentStore: ->
+
+    @sendCommand('kDSetCurrentStore', @toFrame())
     .then =>
-      # sync soups one by one
-      _.reduce @soups, (soFar, soup) ->
-        soFar.then ->
-          soup.sync()
-      , Q()
-      #@soups.Names.sync()
+      @receiveCommand('kDResult')
   
-  toFrame: ->
-
-    return(
-      name: @name
-      kind: @kind
-      signature: @signature
-    )
   
   getSoups: ->
-    console.log "getSoups..."
     
     frame = @toFrame()
     
@@ -101,6 +89,22 @@ module.exports = class NewtonStorage
             name: soupName
             socket: @socket
 
+  sync : ->
+
+    # sync soups one by one
+    _.reduce @soups, (soFar, soup) ->
+      soFar.then ->
+        soup.sync()
+    , Q()
+    #@soups.Names.sync()
+  
+  toFrame: ->
+
+    return(
+      name: @name
+      kind: @kind
+      signature: @signature
+    )
   
   ###*
   @method dispose

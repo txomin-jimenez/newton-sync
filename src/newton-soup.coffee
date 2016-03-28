@@ -67,10 +67,7 @@ module.exports = class NewtonSoup
   _initialize: (options) ->
   
 
-  sync: ->
-    console.log ".....................................sync #{@name} ..."
-
-    @entries = {}
+  allEntries: (processEntryFn) ->
 
     @sendCommand('kDSetCurrentSoup', @name)
     .then =>
@@ -78,31 +75,40 @@ module.exports = class NewtonSoup
     .then (result_)=>
       @sendCommand('kDSendSoup')
     .then =>
-      @listenForCommand('kDEntry',null, @processEntry, 'kDBackupSoupDone')
-      #console.log "set soup result"
-      #console.log result_
-      #@sendCommand('kDLastSyncTime')
-    #.then =>
-      #@receiveCommand('kDCurrentTime')
-    #.then =>
-      #@sendCommand('kDGetSoupIDs')
-    #.then =>
-      #@receiveCommand('kDSoupIDs')
-    #.then (soupIds) =>
-      #console.log "soup ids:"
-      #console.log soupIds
+      @listenForCommand('kDEntry',null, processEntryFn, 'kDBackupSoupDone')
 
-  processEntry: (entryData) =>
-    entryID = entryData._uniqueID
-    if entryID?
-      console.log "(#{@name}) processEntry: #{entryID}"
-      console.log entryData
-      @entries[entryID] = entryData
-    else
-      console.log "invalid entry?:"
-      console.log entryData
+  getEntryById: (docId) ->
 
-  toFrame: ->
+    @sendCommand('kDSetCurrentSoup', @name)
+    .then =>
+      @receiveCommand('kDResult')
+    .then (result_) =>
+      @sendCommand('kDReturnEntry',docId)
+    .then =>
+      @receiveCommand('kDEntry')
+
+  addEntry: (entryData) ->
+
+    @sendCommand('kDSetCurrentSoup', @name)
+    .then =>
+      @receiveCommand('kDResult')
+    .then (result_) =>
+      @sendCommand('kDAddEntry',entryData)
+    .then =>
+      @receiveCommand('kDAddedID')
+
+  deleteEntry: (entryIds) ->
+
+    if not entryIds.length?
+      entryIds = [entryIds]
+
+    @sendCommand('kDSetCurrentSoup', @name)
+    .then =>
+      @receiveCommand('kDResult')
+    .then (result_) =>
+      @sendCommand('kDDeleteEntries', entryIds)
+    .then =>
+      @receiveCommand('kDResult')
 
 
   ###*

@@ -23,7 +23,6 @@ module.exports = class kDSoupIDs extends EventCommand
     super
   
   dataFromBinary: (dataBuffer) ->
-    console.log dataBuffer.toString('hex')
     @length = dataBuffer.readUInt32BE(0)
     count_ = dataBuffer.readUInt32BE(4)
     if count_ > 0

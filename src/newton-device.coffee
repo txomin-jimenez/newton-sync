@@ -158,43 +158,52 @@ module.exports = class NewtonDevice
   getEncryptedKeys: ->
 
     _.pick(@,['encryptedKey1','encryptedKey2'])
-  
-  sync: ->
 
-    #@listenForCommand 'all', (command) ->
-      #console.log "sync trace. comm received"
-      #console.log command
-
-    console.log "syncing ..."
+  initSyncSession: ->
     
-    @_initSyncProcess()
+    # listen Sync command from Newton device. If user taps Dock app Sync icon
+    # launch full sync
+    @listenForCommand('kDSynchronize', @_fullSync)
+
+    # Init store and soup info in order to consume them from lib functions
+    @delay(1000)
     .then =>
-      @_getStoreNames()
-    .then =>
-      @_syncStores()
+      @_initStores()
     .then =>
       @sendCommand('kDOperationDone')
-      @emit 'synced'
-  
-  ###*
-    Init sync process with connected device
-  @method initSyncProcess  
-  ###
-  _initSyncProcess: ->
-    
-    # TO-DO: all sync process :)
-    
-    console.log "init sync process..."
-    #@receiveCommand('kDRequestToSync')
-    @receiveCommand('kDSynchronize')
     .then =>
-      #@sendCommand('kDDesktopControl')
-    #.then =>
-      #@sendCommand('kDSynchronize')
-    #.then =>
-      #@receiveCommand('kDResult')
-    #.then =>
-      @sendCommand('kDGetSyncOptions')
+      @delay(1000)
+  
+
+  _initStores: ->
+
+    @stores = {}
+    @sendCommand('kDGetStoreNames')
+    .then =>
+      @receiveCommand('kDStoreNames')
+    .then (stores) =>
+      _.reduce stores, (soFar, store_) =>
+        soFar.then =>
+          store_.socket = @socket
+          store = @stores[store_.name] = new NewtonStorage(store_)
+          store.getSoups()
+      , Q()
+
+  _fullSync: =>
+
+    if not @isReady()
+      # if we are processing respond already busy
+      @sendCommand('kDResult', {errorCode: -28027})
+    else
+      @_initFullSync()
+      .then =>
+        @_syncStores()
+      .then =>
+        @sendCommand('kDOperationDone')
+  
+  _initFullSync: ->
+    
+    @sendCommand('kDGetSyncOptions')
     .then =>
       @receiveCommand('kDSyncOptions')
     .then (syncOptions) =>
@@ -206,20 +215,6 @@ module.exports = class NewtonDevice
     .then (newtonTime) =>
       console.log "Newton time: "
       console.log newtonTime
-      
-  _getStoreNames: ->
-
-    console.log "getStoreNames"
-
-    @stores = {}
-    @sendCommand('kDGetStoreNames')
-    .then =>
-      @receiveCommand('kDStoreNames')
-    .then (stores) =>
-      _.each stores, (store_) =>
-        console.log store_
-        store_.socket = @socket
-        @stores[store_.name] = new NewtonStorage(store_)
   
   _syncStores: ->
 
@@ -233,6 +228,54 @@ module.exports = class NewtonDevice
       soFar.then ->
         store.sync()
     , Q()
+  
+  ###*
+  @method sync
+  ###
+  initSync: ->
+    
+    #@receiveCommand('kDRequestToSync')
+    #@receiveCommand('kDSynchronize')
+    #.then =>
+      #@sendCommand('kDDesktopControl')
+    #.then =>
+      #@sendCommand('kDSynchronize')
+    #.then =>
+      #@receiveCommand('kDResult')
+    #.then =>
+ 
+    @sendCommand('kDDesktopControl')
+    .then =>
+      @sendCommand('kDRequestToSync')
+      #@sendCommand('kDSynchronize')
+    .then =>
+      @receiveCommand('kDResult')
+      #@receiveCommand('kDSynchronize')
+    .then =>
+      @sendCommand('kDGetSyncOptions')
+    .then =>
+      @receiveCommand('kDSyncOptions')
+    .then (syncOptions) =>
+      console.log "received sync options:"
+      console.log syncOptions
+      @sendCommand('kDLastSyncTime')
+    .then =>
+      @receiveCommand('kDCurrentTime')
+    .then (newtonTime) =>
+      console.log "Newton time: "
+      console.log newtonTime
+  
+  finishSync: ->
+    @sendCommand('kDOperationDone')
+ 
+
+  getSoup: (soupName) ->
+    
+    # get from internal store for now
+    @stores['Internal'].setCurrentStore()
+    .then (result) =>
+      @stores['Internal'].soups[soupName]
+  
   
   ###*
   @method dispose

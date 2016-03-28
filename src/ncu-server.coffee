@@ -93,6 +93,10 @@ module.exports = class NcuServer
     socket.on 'close', =>
       delete @_connections?[connId]
   
+  ###*
+    get current connections count
+  @method connectionsCount
+  ###
   connectionsCount: ->
     _.size(@_connections)
       

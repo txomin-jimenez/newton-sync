@@ -20,7 +20,7 @@
     "serial"
   ],
   "author": "Txomin Jimenez",
-  "license": "SEE LICENSE IN README.md",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/txomin-jimenez/newton-sync/issues"
   },

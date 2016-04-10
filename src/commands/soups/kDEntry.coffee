@@ -7,7 +7,8 @@ ULong 'ntry'
 ULong length
 NSOF  soup entry
 
-
+This command is sent in response to a KDReturnEntry command. The entry in the 
+current soup specified by the ID in the KDReturnEntry command is returned.
 ###
 EventCommand      = require '../event-command'
 NsOF              = require '../../nsof'
@@ -26,11 +27,4 @@ module.exports = class kDEntry extends EventCommand
   dataFromBinary: (dataBuffer) ->
     #console.log dataBuffer.toString('hex')
     @length = dataBuffer.readUInt32BE(0)
-    try
-      @data = NsOF.decode(dataBuffer.slice(4))
-    catch err
-      console.log "error decoding kDEntry"
-      console.log dataBuffer.slice(4).toString('hex')
-      throw err
-
-    
+    @data = NsOF.decode(dataBuffer.slice(4))

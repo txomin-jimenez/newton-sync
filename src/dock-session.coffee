@@ -207,8 +207,8 @@ module.exports = class DockSession
       # kSynchronizeSession type didn't work so will use kSettingUpSession
       sessionType: DockSession.sessionTypes.kSettingUpSession
       #sessionType:  DockSession.sessionTypes.kSynchronizeSession
-      allowSelectiveSync: 0 # TO-DO. this will be adjusted when we can 
-                            # retrieve previous sync file
+      allowSelectiveSync: 0 # TO-DO. this will be adjusted if needed
+    
     @desktopInfo.desktopApps = [
         name: "Newton Connection"
         id: 2
@@ -220,7 +220,7 @@ module.exports = class DockSession
   @method setDockIcons
   ###
   _setDockIcons: ->
-    # Show only sync dock icon. only sync will be supported
+    # Show only sync dock icon. only sync will be supported for now
     whichIcons = DockSession.dockIcons.kSyncIcon
 
     @sendCommand('kDWhichIcons', whichIcons)

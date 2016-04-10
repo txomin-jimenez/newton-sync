@@ -5,8 +5,8 @@ module.exports =
   # order to reduce the size of the streamed data
   # kNIL=10 (byte)
   encode: ->
-    # binary value 10
-    new Buffer([0x10])
+    # binary value of 10
+    new Buffer('0a','hex')
   decode: (buffer) ->
     # nil is null
     return(

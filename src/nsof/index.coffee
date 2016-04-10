@@ -33,8 +33,15 @@ module.exports =
       when 'object'
         if value is null
           NNIL.encode()
-        if value instanceof Array
+        else if value instanceof Buffer
+          if value[0] <= 12
+            value
+          else
+            throw new Error "invalid NSOF Buffer"
+        else if value instanceof Array
           NPlainArray.encode(value)
+        else if value._binaryClass?
+          NBinary.encode(value)
         else
           NFrame.encode(value)
       else
@@ -77,16 +84,7 @@ module.exports =
       precedents.push precedentRefObj
     
     result = switch ntype
-      when 0 # immediate ref
-        if buffer[1] is 0x1A
-          # its a boolean true value
-          NBoolean.decode(buffer)
-        else if buffer[1] is 2
-          # its a nil ref
-          NNIL.decode()
-        else
-          # decode to numeric value
-          NImmediate.decode(buffer)
+      when 0 then NImmediate.decode(buffer)
       when 1 then NkCharacter.decode(buffer)
       when 2 then NUniChar.decode(buffer)
       when 3 then NBinary.decode(buffer, precedents)
@@ -104,7 +102,8 @@ module.exports =
         throw new Error "decoding NSOF type '#{ntype}' is unknown"
     
     precedentRefObj.value = result.value
-    
+
+
     if isRoot
       result.value
     else

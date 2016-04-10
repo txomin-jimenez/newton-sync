@@ -72,6 +72,9 @@ module.exports = class NewtonStorage
     @sendCommand('kDSetCurrentStore', @toFrame())
     .then =>
       @receiveCommand('kDResult')
+    .then (result) =>
+      if result?.errorCode isnt 0
+        throw new Error "error #{result.errorCode} setting current store."
   
   
   getSoups: ->
@@ -84,19 +87,20 @@ module.exports = class NewtonStorage
       @receiveCommand('kDSoupNames')
     .then (soups_) =>
       _.each soups_, (soupName) =>
+        # Avoid packages from now
         if soupName isnt 'Packages'
           @soups[soupName] = new NewtonSoup
             name: soupName
             socket: @socket
 
-  sync : ->
+  #sync : ->
 
-    # sync soups one by one
-    _.reduce @soups, (soFar, soup) ->
-      soFar.then ->
-        soup.sync()
-    , Q()
-    #@soups.Names.sync()
+    ## sync soups one by one
+    #_.reduce @soups, (soFar, soup) ->
+      #soFar.then ->
+        #soup.sync()
+    #, Q()
+    ##@soups.Names.sync()
   
   toFrame: ->
 

@@ -1,12 +1,29 @@
 Utils             = require '../utils'
 NXLong            = require './nxlong'
+NSymbol           = require './nsymbol'
 
 module.exports =
 
   encode: (value) ->
-    encode = require('./index').encode
-    throw new Error "encode Binary not implemented yet"
-  
+    #encode = require('./index').encode
+   
+    frameHeader = new Buffer(1)
+    frameHeader.writeUInt8(3,0) # kBinaryObject
+    
+    if typeof value.toBinary is 'function'
+      binaryData = value.toBinary()
+    else if value._binaryData instanceof Buffer
+      binaryData = value._binaryData
+    else
+      binaryData = Utils.unichar.toUniCharBuffer(value._binaryData)
+    
+    Buffer.concat [
+      frameHeader
+      NXLong.encode(binaryData.length)
+      NSymbol.encode(value._binaryClass)
+      binaryData
+    ]
+
   decode: (buffer, precedents) ->
     decode= require('./index').decode
     bytesRead_ = 1

@@ -32,4 +32,3 @@ module.exports = class kDAddEntry extends EventCommand
     lengthBuff.writeUInt32BE(frameData.length,0)
     
     Buffer.concat [lengthBuff,frameData]
-    

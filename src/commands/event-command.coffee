@@ -29,7 +29,7 @@ Utils             = require '../utils'
 
 #######################################################################
 #  Dynamically load all command classes
-#  factory methods will parse input to this object to produce correct
+#  factory methods will parse input with this object to produce correct
 #  instances.
 dockCommands = {}
 

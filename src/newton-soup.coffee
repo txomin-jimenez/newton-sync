@@ -77,22 +77,27 @@ module.exports = class NewtonSoup
     .then =>
       @listenForCommand('kDEntry',null, processEntryFn, 'kDBackupSoupDone')
 
-  getEntryById: (docId) ->
+  setCurrentSoup: ->
 
     @sendCommand('kDSetCurrentSoup', @name)
     .then =>
       @receiveCommand('kDResult')
-    .then (result_) =>
+    .then (result) =>
+      if result?.errorCode isnt 0
+        throw new Error "error #{result.errorCode} setting current soup #{@name}"
+
+  getEntry: (docId) ->
+
+    @setCurrentSoup()
+    .then =>
       @sendCommand('kDReturnEntry',docId)
     .then =>
       @receiveCommand('kDEntry')
 
   addEntry: (entryData) ->
 
-    @sendCommand('kDSetCurrentSoup', @name)
+    @setCurrentSoup()
     .then =>
-      @receiveCommand('kDResult')
-    .then (result_) =>
       @sendCommand('kDAddEntry',entryData)
     .then =>
       @receiveCommand('kDAddedID')
@@ -102,10 +107,8 @@ module.exports = class NewtonSoup
     if not entryIds.length?
       entryIds = [entryIds]
 
-    @sendCommand('kDSetCurrentSoup', @name)
+    @setCurrentSoup()
     .then =>
-      @receiveCommand('kDResult')
-    .then (result_) =>
       @sendCommand('kDDeleteEntries', entryIds)
     .then =>
       @receiveCommand('kDResult')

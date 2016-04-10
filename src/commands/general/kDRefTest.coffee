@@ -28,15 +28,19 @@ module.exports = class kDRefTest extends EventCommand
     super
 
   dataToBinary: ->
-    testData = NsOF.fromValue(@data)
+    testData = NsOF.encode(@data)
     
     lengthBuff = new Buffer(4)
-    #console.log "data length: #{data.length}"
     lengthBuff.writeUInt32BE(data.length,0)
     
-    # TO-DO: don't know why but whe must terminate de buffer with 0 0
-    # or Newton wont recognize it. Probably a byte padding? or terminator
-    Buffer.concat [lengthBuff,data,testData,new Buffer([0x00,0x00])]
+    Buffer.concat [lengthBuff,testData]
   
   dataFromBinary: (dataBuffer) ->
-    throw new Error "not implemented yet!"
+    #console.log dataBuffer.toString('hex')
+    @length = dataBuffer.readUInt32BE(0)
+    try
+      @data = NsOF.decode(dataBuffer.slice(4))
+    catch err
+      console.log "error decoding reftest"
+      console.log dataBuffer.slice(4).toString('hex')
+      throw err

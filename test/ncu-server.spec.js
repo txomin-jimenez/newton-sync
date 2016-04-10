@@ -34,6 +34,17 @@ describe('NCU Server', function( done ) {
       
     });
     
+    it('should emit a new-session event', function(done){
+      client = null;
+      testServer.on('new-session', function (newSession){
+        client.on('close', function() {
+          done();
+        });
+        client.destroy();
+      });
+      client = net.connect({port: testServer.httpPort});
+    });
+    
     it('should remove a finished connection from queue', function(){
       // check previous test case disconn
       expect(testServer.connectionsCount()).to.equal(0);   

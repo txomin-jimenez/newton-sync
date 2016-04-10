@@ -1,4 +1,5 @@
 NXLong = require './nxlong'
+NBoolean          = require './nboolean'
 
 module.exports =
   
@@ -10,13 +11,9 @@ module.exports =
     value = switch type
       when 'integer' then NXLong.encode(ref << 2)
       when 'boolean'
-        # 0x1a for TRUE or 0 for false
-        if ref
-          new Buffer([0x1A])
-        else
-          new Buffer([0])
+        NBoolean.encode(ref)
       when 'nil'
-        # nil ref = 0x2
+        # immediate ref nil = 0x2
         new Buffer([2])
       else
         throw new Error "#{type} not implemented yet"
@@ -24,14 +21,17 @@ module.exports =
     Buffer.concat [new Buffer([0x00]), value]
   
   decode: (buffer) ->
-    # extract binary ref value
-    decodedLong = NXLong.decode(buffer.slice(1))
-    # check for TRUE ref
-    if decodedLong.value is 0x1A
-      decodedLong.value = true
+    if buffer[1] is 0x1A
+      # its a boolean true value
+      NBoolean.decode(buffer)
+    else if buffer[1] is 2
+      # its a nil ref
+      NNIL.decode()
     else
+      # extract binary ref value
+      decodedLong = NXLong.decode(buffer.slice(1))
       # decode ref value
       decodedLong.value = decodedLong.value >> 2
-    # add header byte to count
-    decodedLong.bytesRead = decodedLong.bytesRead + 1
-    decodedLong
+      # add header byte to count
+      decodedLong.bytesRead = decodedLong.bytesRead + 1
+      decodedLong

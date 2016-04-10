@@ -12,6 +12,7 @@ describe('Dock Session', function( done ) {
     var client = null;
 
     before(function(done) {
+      // simulate a connection from Newton device
       testNewt.connectToDock().then(function(){
         done();
       });
@@ -28,6 +29,7 @@ describe('Dock Session', function( done ) {
           done();
         });
       }); 
+      // send Hello command from NCU server
       testServer._connections[(Object.keys(testServer._connections))[0]].sendCommand('kDHello');
     });
     
@@ -52,8 +54,6 @@ describe('Dock Session', function( done ) {
       testNewt.sendCommand('kDNewtonName',testNewt.info());
       testNewt.receiveCommand('kDDesktopInfo')
       .then(function(dockInfo){
-        console.log('.................................');
-        console.log(_.pick(dockInfo,['encryptedKey1','encryptedKey2']));
         testDockInfo = dockInfo;
         testNewt.sendCommand('kDNewtonInfo', testNewt.newtonInfo); 
         return testNewt.receiveCommand('kDWhichIcons');
@@ -73,8 +73,6 @@ describe('Dock Session', function( done ) {
         };
         testNewt.sendCommand('kDPassword', testPassKeys);
         return testNewt.receiveCommand('kDPassword');
-      //}).then(function(){
-        //return testNewt.receiveCommand('kDResult');
       }).then(function(_passwdRes){
         global.passwdRes = _passwdRes;
         done();
@@ -89,56 +87,6 @@ describe('Dock Session', function( done ) {
     });
 
     after(function() {
-      //console.log("_____________________________________________________");
-      //console.log("Newt -> Desktop, NewtonInfo send test keys");
-
-      //passTestBuff1 = new Buffer([0x00,0x00 ,0x00 ,0x0a ,0x00 ,0x65 ,0x0c ,0x16 ,0x00 ,0x58 ,0x92 ,0xeb]);
-
-      //console.log(passTestBuff1.readUInt32BE(0));
-      //console.log(passTestBuff1.readUInt32BE(4));
-      //console.log(passTestBuff1.readUInt32BE(8));
-
-      //console.log("_____________________________________________________");
-      //console.log("Desktop -> Newt. DesktopInfo sent keys");
-      //console.log(1434875146);
-      //console.log(1852706659);
-      //console.log("_____________________________________________________");
-      //console.log("Newton -> Desktop Password send test keys");
-      //passTestBuff2 = new Buffer([0x5a,0xf1 ,0x16 ,0x2b ,0xee ,0xbb ,0xcd ,0xca]);
-      
-      //console.log(passTestBuff2.readUInt32BE(0));
-      //console.log(passTestBuff2.readUInt32BE(4));
-      
-      //console.log("_____________________________________________________");
-      //console.log("Desktop -> Newton. NCX Password send test keys");
-      //passTestBuff3 = new Buffer([0x6e,0x65 ,0x77 ,0x74 ,0x64 ,0x6f ,0x63 ,0x6b ,0x70 ,0x61 ,0x73 ,0x73 ,0x00 ,0x00 ,0x00 ,0x08 ,0xc1 ,0x3c ,0xb9 ,0x49 ,0xed ,0xbe ,0x4e ,0x23]);
-      //console.log(passTestBuff3.readUInt32BE(16));
-      //console.log(passTestBuff3.readUInt32BE(20));
-      
-      //console.log("_____________________________________________________");
-      
-      //console.log("Desktop sent key:");
-      //buffTest = new Buffer([0x10, 0x94, 0x7d, 0xc9, 0x04, 0xce, 0x1f, 0xa0]);
-      //console.log(buffTest.readUInt32BE(0) + ' ' + buffTest.readUInt32BE(4));
- 
-      //console.log("Newton sent key:");
-      //buffTest = new Buffer([0x2c, 0x4b, 0x29, 0xe1, 0xd7, 0x05, 0x59, 0x3e]);
-      //console.log(buffTest.readUInt32BE(0) + ' ' + buffTest.readUInt32BE(4));
-      
-      //console.log("our result:");
-      //buffTest = new Buffer([0xff, 0xff, 0x92, 0x95]);
-      //console.log(buffTest.readInt32BE(0)) ;
-      
-      //console.log("their result:");
-      //buffTest = new Buffer([0xff, 0xff, 0xff, 0xfc]);
-      //console.log(buffTest.readInt32BE(0)) ;
-      
-      //newtonKeys = new Buffer('ff8a5c97006dd480','hex');
-      //newtonKeysNCXEncrypted = new Buffer('9d15b7ac11c7311a','hex'); 
-      //console.log("NewtonKeys:");
-      //console.log(newtonKeys);
-      //console.log("newtonKeysEncrypted:");
-      //console.log(newtonKeysNCXEncrypted);
       
       testNewt.disconnect();
 

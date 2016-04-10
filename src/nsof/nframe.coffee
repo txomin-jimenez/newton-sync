@@ -24,8 +24,12 @@ module.exports =
       ## encode keys to tags (symbols)
       slotTags.push NSymbol.encode(key)
       
-      # encode values to each representation
-      slotValues.push encode(value, isRoot = false)
+      if key is 'class'
+        # class values are symbols
+        slotValues.push NSymbol.encode(value)
+      else
+        # encode values to each representation
+        slotValues.push encode(value, isRoot = false)
 
     # concat arrays into an array of buffers and concat into a new buffer
     Buffer.concat [frameHeader, NXLong.encode(keyCount)].concat(slotTags,slotValues)
@@ -50,10 +54,9 @@ module.exports =
     # continue reading values and assigning them to key values
     resObj = {}
     _.forEach keyArray, (keyName) ->
-      #console.log "------decode #{keyName}:"
+      
       # extract and decode a value
       value_ = decode(buffer.slice(objByteLength), precedents, isRoot = false)
-      #console.log value_.value
       # assign it to key
       resObj[keyName] = value_.value
       # sum read bytes

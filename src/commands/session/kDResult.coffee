@@ -28,7 +28,7 @@ module.exports = class kDResult extends EventCommand
     data = new Buffer(8)
     data.writeUInt32BE(@length,0)
     # TO-DO: check if data is typeof number?
-    data.writeUInt32BE(@data,4)
+    data.writeInt32BE(@data,4)
     data
   
   dataFromBinary: (dataBuffer) ->

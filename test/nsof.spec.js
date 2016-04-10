@@ -88,4 +88,5 @@ describe('NSOF', function( done ) {
            storeversion: 4 } ] ;
       expect(_.isEqual(NsOF.decode(complexBuff),complexObj)).to.be.true;
     });
+
 });

@@ -1,3 +1,8 @@
+/**
+  Use lib Newton device class in order to mock a Newton device in test env
+@class MockNewton  
+*/
+
 var MockNewton,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -21,8 +26,8 @@ module.exports = MockNewton = (function(superClass) {
 
   MockNewton.prototype.newtonInfo = {
     protocolVersion: 10,
-    encryptedKey1: 0x00783c8c, //991083, //6622230,
-    encryptedKey2: 0x002bb602}; //4286766539}; //5804779};
+    encryptedKey1: 0x00783c8c, 
+    encryptedKey2: 0x002bb602}; 
 
   /**
     Connect to doc. Used to mock Newton device connection in test environment

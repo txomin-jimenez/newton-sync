@@ -5,9 +5,9 @@ module.exports =
   encode: (value) ->
     # the Ref for TRUE is 0x1A
     if value
-      new Buffer([0x00,0x1a])
+      new Buffer('1a','hex')
     else
-      new Buffer([0x00,0x00])
+      new Buffer('00','hex')
   
   decode: (buffer) ->
     boolValue = false

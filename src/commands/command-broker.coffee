@@ -109,8 +109,11 @@ module.exports =
       else if command.id is 'dres'
         # if a KDResult is received receiving a command it indicates some
         # type of dock error. throw it to handle in the process
-        console.log command.data
-        deferred.reject command.data
+        if command.data?.errorCode is 0
+          deferred.resolve command.data
+        else
+          console.log command.data
+          deferred.reject command.data
       else if command.id is 'helo'
         # if hello received ignore it, Newton will send them to indicate that
         # is working and keep connection alive

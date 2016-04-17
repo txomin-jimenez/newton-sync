@@ -6,6 +6,8 @@
 ###
 
 _                 = require 'lodash'
+Q                 = require 'q'
+
 CommandBroker     = require './commands/command-broker'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
@@ -247,8 +249,18 @@ module.exports = class DockSession
         newtonKey = @newtonDevice.getEncryptedKeys()
         sendKeys = @_encryptKey(newtonKey)
         @sendCommand('kDPassword', sendKeys)
+        .then =>
+          if @sessionPwd?
+            @receiveCommand('kDResult')
+            .then (pwdResult) =>
+              if pwdResult isnt 0
+                throw new Error "Invalid Password"
+          else
+            Q()
       else
-        @sendCommand('kDPWWrong')
+        @delay(500)
+        .then =>
+          @sendCommand('kDPWWrong')
         .then =>
           # try again. TO-DO: limit to 3 times
           @_negotiatePassword()

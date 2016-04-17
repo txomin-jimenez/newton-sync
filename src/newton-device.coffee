@@ -20,68 +20,120 @@ module.exports = class NewtonDevice
   socket: null
   
   ###*
+    Received Newton device name
   @property name
   ###
   name: null
 
   # NewtonInfo attributes
-
   # Newton Information block, as returned by kDNewtonName.
-  # A unique id to identify a particular newton 
+  
+  ###*
+    A unique id to identify a particular newton 
+  @property fNewtonID 
+  ###
   fNewtonID: null
 
-  # A decimal integer indicating the manufacturer of the device
+  ###*
+    A decimal integer indicating the manufacturer of the device
+  @property fManufacturer
+  ###
   fManufacturer: null
 
-  # A decimal integer indicating the hardware type of the device
+  ###*
+    A decimal integer indicating the hardware type of the device
+  @property fMachineType
+  ###
   fMachineType: null
 
-  # A decimal number indicating the major and minor ROM version numbers
-  # The major number is in front of the decimal, the minor number after
+  ###*
+    A decimal number indicating the major and minor ROM version numbers
+    The major number is in front of the decimal, the minor number after
+  @property fROMVersion
+  ###
   fROMVersion: null
 
-  # A decimal integer indicating the language (English, German, French)
-  # and the stage of the ROM (alpha, beta, final) 
+  ###*
+    A decimal integer indicating the language (English, German, French)
+    and the stage of the ROM (alpha, beta, final) 
+  @property fROMStage
+  ###
   fROMStage: null
 
+  ###*
+    Device RAM size in bytes
+  @property fRAMSize 
+  ###
   fRAMSize: null
 
-  # An integer representing the height of the screen in pixels	
+  ###*
+    An integer representing the height of the screen in pixels	
+  @property fScreenHeight 
+  ###
   fScreenHeight: null
 
-  # An integer representing the width of the screen in pixels
+  ###*
+    An integer representing the width of the screen in pixels
+  @property fScreenWidth
+  ###
   fScreenWidth: null
 
-  # 0 on an unpatched Newton and nonzero on a patched Newton
+  ###*
+    0 on an unpatched Newton and nonzero on a patched Newton
+  @property fPatchVersion
+  ###
   fPatchVersion: null
 
+  ###*
+    Device's NewtonOS version
+  @property fNOSVersion
+  ###
   fNOSVersion: null
 
-  # signature of the internal store
+  ###*
+    Signature (internal identifier) of the internal store
+  @property fInternalStoreSig 
+  ###
   fInternalStoreSig: null
 
-  # An integer representing the number of vertical pixels per inch
+  ###*
+    An integer representing the number of vertical pixels per inch
+  @property fScreenResolutionV
+  ###
   fScreenResolutionV: null
 
-  # An integer representing the number of horizontal pixels per inch
+  ###*
+    An integer representing the number of horizontal pixels per inch
+  @property fScreenResolutionH
+  ###
   fScreenResolutionH: null
 
-  # The bit depth of the LCD screen
+  ###*
+    The bit depth of the LCD screen
+  @property fScreenDepth
+  ###
   fScreenDepth: null
 
-  # various bit flags 
-  # 1 = has serial number
-  # 2 = has target protocol
-  fSystemFlags: null
-  fSerialNumber: null
-  fTargetProtocol:null
-
   ###*
-    TCP socket for device comms
-  @property socket
+    various System bit flags 
+    1 = has serial number
+    2 = has target protocol
+  @property fSystemFlags
   ###
-  socket: null
- 
+  fSystemFlags: null
+  
+  ###*
+    Device serial number if present
+  @property fSerialNumber 
+  ###
+  fSerialNumber: null
+  
+  ###*
+    Target protocol if present
+  @property fTargetProtocol 
+  ###
+  fTargetProtocol: null
+
   ###*
   @class NewtonDevice
   @constructor
@@ -128,9 +180,10 @@ module.exports = class NewtonDevice
   ###
   _initialize: (options) ->
 
+    null
   
   ###*
-    return a object with device info 
+    Return a object with device info 
   @method info
   ###
   info: ->
@@ -154,17 +207,26 @@ module.exports = class NewtonDevice
       'fTargetProtocol'
       'name'
     ]
-
+  
+  ###*
+    Get encryption keys used for session password exchange 
+  @method getEncryptedKeys
+  ###
   getEncryptedKeys: ->
 
     _.pick(@,['encryptedKey1','encryptedKey2'])
-
+  
+  ###*
+    Init device for sync session. used in session init. Storage and Soup info
+    is pre-fetched for later sync process use
+  @method initSyncSession
+  ###
   initSyncSession: ->
     
     # listen Sync command from Newton device. If user taps Dock app Sync icon
     # launch full sync event 
     @listenForCommand('kDSynchronize', @_fullSync)
-
+    
     # Init store and soup info in order to consume them from lib functions
     @delay(1000)
     .then =>
@@ -173,7 +235,12 @@ module.exports = class NewtonDevice
       @sendCommand('kDOperationDone')
     .then =>
       @delay(1000)
-
+  
+  ###*
+    Load store names from device and initialize instances to handle them
+  @method initStores
+  @private
+  ###
   _initStores: ->
 
     @stores = {}
@@ -185,22 +252,12 @@ module.exports = class NewtonDevice
         soFar.then =>
           store_.socket = @socket
           store = @stores[store_.name] = new NewtonStorage(store_)
-          store.getSoups()
+          # init soups in storage for later use
+          store.initSoups()
       , Q()
 
-  callRootMethod: (methodName, args...) ->
-
-    @sendCommand('kDCallRootMethod', {
-      functionName: methodName
-      functionArgs: args
-    }).then =>
-      @receiveCommand('kDCallResult')
-
-  notifyUser: (title, message) ->
-    @delay(500)
-    .then =>
-      @callRootMethod 'Notify', 3, title , message
-  
+  ###*
+  ###
   _fullSync: =>
     
     @_initFullSync()
@@ -212,7 +269,11 @@ module.exports = class NewtonDevice
       @notifyUser "Process finished", "Synchronization finished successfully"
     .then =>
       @sendCommand('kDOperationDone')
-
+  
+  ###*
+    Negotiate sync process with Newton device
+  @method initFullSync
+  ###
   _initFullSync: ->
     
     @sendCommand('kDGetSyncOptions')
@@ -228,24 +289,11 @@ module.exports = class NewtonDevice
       console.log "Newton time: "
       console.log newtonTime
   
-  #_syncStores: ->
-
-    #console.log "syncStores"
-
-    #_.reduce @stores, (soFar, store) ->
-      #soFar.then ->
-        #store.sync()
-    #, Q()
-  
-  ###*
-  @method sync
-  ###
   initSync: ->
     @sendCommand('kDDesktopControl')
   
   finishSync: ->
     @sendCommand('kDOperationDone')
- 
 
   getSoup: (soupName) ->
     
@@ -253,6 +301,29 @@ module.exports = class NewtonDevice
     @stores['Internal'].setCurrentStore()
     .then (result) =>
       @stores['Internal'].soups[soupName]
+
+  appNames: ->
+
+    @sendCommand("kDGetAppNames")
+    .then =>
+      @receiveCommand("kDAppNames")
+    .then (appNames) =>
+      @sendCommand('kDOperationDone')
+      appNames
+
+  
+  callRootMethod: (methodName, args...) ->
+
+    @sendCommand('kDCallRootMethod', {
+      functionName: methodName
+      functionArgs: args
+    }).then =>
+      @receiveCommand('kDCallResult')
+
+  notifyUser: (title, message) ->
+    @delay(500)
+    .then =>
+      @callRootMethod 'Notify', 3, title , message
   
   ###*
   @method dispose
@@ -264,13 +335,18 @@ module.exports = class NewtonDevice
     @emit 'dispose', this
     
     @removeAllListeners()
+   
+    # dispose stores
+    if @stores?
+      for store in @stores
+        store.dispose()
+    
+    properties = [
+      'socket',
+      'stores',
+    ]
 
-    #properties = [
-      #'socketConnection',
-      #'newtonDevice',
-    #]
-
-    #delete this[prop] for prop in properties
+    delete this[prop] for prop in properties
     
     @disposed = true
 

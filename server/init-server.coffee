@@ -17,7 +17,13 @@ ncuServer.on 'new-session', (sessionObj) ->
 
     console.log "Newton device: ID: #{newtonDevice.fNewtonID}. 
       Name: #{newtonDevice.name}"
-    
+
+    newtonDevice.appNames()
+    .then (appNames) ->
+      console.log "App Names:"
+      console.log appNames
+
+    return
     # lib doesn't handle init/finish operation command yet. have to do it 
     # manually
     newtonDevice.initSync()

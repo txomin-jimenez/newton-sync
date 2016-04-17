@@ -23,7 +23,61 @@ module.exports = class NewtonStorage
   @property name
   ###
   name: null
- 
+
+  ###*
+    Internal identifier
+  @property signature
+  ###
+  signature: null
+
+  ###*
+    Storage size in bytes  
+  @property totalSize
+  ###
+  totalSize: null
+
+  ###*
+    Used storage in bytes 
+  @property usedSize
+  ###
+  usedSize: null
+
+  ###*
+    Storage kind: (Internal/External) 
+  @property kind
+  ###
+  kind: null
+
+  ###*
+    Storage info 
+  @property info
+  ###
+  info: null
+
+  ###*
+    Write protection 
+  @property readOnly
+  ###
+  readOnly: null
+
+  ###*
+    password protected storage 
+  @property storePassword
+  ###
+  storePassword: null
+
+  ###*
+    Store is default store for new entries 
+  @property defaultStore
+  ###
+  defaultStore: null
+
+  ###*
+    store revision identifier 
+  @property storeVersion
+  ###
+  storeVersion: null
+  
   ###*
   @class NewtonStorage
   @constructor
@@ -66,50 +120,61 @@ module.exports = class NewtonStorage
   ###
   _initialize: (options) ->
 
+    null
 
+  ###*
+    Load soup names from device and initialize instances for later use
+  @method initSoups
+  ###
+  initSoups: ->
+    
+    storeFrame = @toFrame()
+    
+    @soups = {}
+    @sendCommand('kDSetStoreGetNames', storeFrame)
+    .then =>
+      @receiveCommand('kDSoupNames')
+    .then (soups_) =>
+      _.reduce soups_, (soFar, soupName) =>
+        soFar.then =>
+          # Avoid packages from now
+          if soupName isnt 'Packages'
+            soup = @soups[soupName] = new NewtonSoup
+              name: soupName
+              socket: @socket
+            # load soup info for later use  
+            soup.loadSoupInfo()
+          else
+            Q()
+      , Q()
+  
+  ###*
+    Set store as current before soup operations
+  @method setCurrentStore
+  ###
   setCurrentStore: ->
+    
+    storeFrame = @toFrame()
 
-    @sendCommand('kDSetCurrentStore', @toFrame())
+    @sendCommand('kDSetCurrentStore', storeFrame)
     .then =>
       @receiveCommand('kDResult')
     .then (result) =>
       if result?.errorCode isnt 0
         throw new Error "error #{result.errorCode} setting current store."
   
-  
-  getSoups: ->
-    
-    frame = @toFrame()
-    
-    @soups = {}
-    @sendCommand('kDSetStoreGetNames', frame)
-    .then =>
-      @receiveCommand('kDSoupNames')
-    .then (soups_) =>
-      _.each soups_, (soupName) =>
-        # Avoid packages from now
-        if soupName isnt 'Packages'
-          @soups[soupName] = new NewtonSoup
-            name: soupName
-            socket: @socket
-
-  #sync : ->
-
-    ## sync soups one by one
-    #_.reduce @soups, (soFar, soup) ->
-      #soFar.then ->
-        #soup.sync()
-    #, Q()
-    ##@soups.Names.sync()
-  
+  ###*
+    Store frame representation as needed for Newton command exchange 
+  @method toFrame
+  ###
   toFrame: ->
-
+    
     return(
       name: @name
       kind: @kind
       signature: @signature
     )
-  
+
   ###*
   @method dispose
   ###
@@ -120,13 +185,28 @@ module.exports = class NewtonStorage
     @emit 'dispose', this
     
     @removeAllListeners()
+    
+    # dispose soups
+    if @soups?
+      for soup in @soups
+        soup.dispose()
 
-    #properties = [
-      #'socketConnection',
-      #'newtonDevice',
-    #]
+    properties = [
+      'socket'
+      'name'
+      'signature'
+      'totalSize'
+      'usedSize'
+      'kind'
+      'info'
+      'readOnly'
+      'storePassword'
+      'defaultStore'
+      'storeVersion'
+      'soups'
+    ]
 
-    #delete this[prop] for prop in properties
+    delete this[prop] for prop in properties
     
     @disposed = true
 

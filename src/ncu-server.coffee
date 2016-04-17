@@ -6,6 +6,7 @@
 net               = require 'net'
 EventEmitter      = require('events').EventEmitter
 _                 = require 'lodash'
+moment            = require 'moment'
 
 DockSession       = require './dock-session'
 

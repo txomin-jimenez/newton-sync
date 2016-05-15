@@ -1,156 +1,166 @@
-###*
-  CommandBroker
-  Mixing intended to add send/receive Newton Dock Command capability to a class
-  a socket property needed in order to work
-###
 _                 = require 'lodash'
 Q                 = require 'q'
+EventEmitter      = require('events').EventEmitter
 
 EventCommand      = require './event-command'
+DockCommandError  = require './command-error'
+CommandTransaction = require './command-transaction'
 
-module.exports =
+module.exports = class CommandBroker
+  
+  # event emit feature
+  _.extend @prototype, EventEmitter.prototype
+
+  ###*
+    TCP socket for device comms
+  @property socket
+  ###
+  socket: null
   
   ###*
-    check for socket property. checked before send or receive
-  @method checkSocket
+    Timeout for command exchange. if no response or activity is detected
+    machine enters on invalid state
+  @property timeout
   ###
-  _checkSocket: ->
+  timeout: 30000
+  
+  ### 
+  @property transactionQueue
+  ###
+  _transactionQueue: null
+  
+  currentStorage: null
+  currentSoup: null
+  
+  ###*
+  @class CommandBroker
+  @constructor
+  ###
+  constructor: (options) ->
+
+    if options
+      _.extend this, _.pick options, [
+        'socket'
+        'timeout'
+      ]
+      
+    @_initialize()
+  
+  ###*
+    all init method go here
+  @method initialize
+  ###
+  _initialize: ->
     if not @socket?
-      _msg = "(#{@constructor.name}): socket connection needed"
+      _msg = "CommandBroker: socket connection needed"
       throw new Error _msg
+    else
+      @_transactionQueue = []
+      @_processTransactionQueue()
+      @socket.on 'data', @_commandReceived
+
+  ###*
+  
+  @method 
+  ###
+  newTransaction: (consumerId)->
+
+    transaction = new CommandTransaction
+      socket: @socket
+      consumerId: consumerId
+
+    @_transactionQueue.push transaction
+    
+    @emit 'transaction-queued'
+
+    transaction
   
   ###*
-    check if busy. only one receive/send operation at a time allowed 
-  @method _checkProcessing
-  ###
-  _checkProcessing: ->
-    if @isProcessing()
-      _msg = "(#{@constructor.name}): cannot process. event in process"
-      throw new Error _msg
   
-  ###*
-    wait X milliseconds asynchronously. Sometimes we need to wait a bit, if
-    we go too fast process could fail
-  @method delay
+  @method 
   ###
-  delay: (delayMs) ->
+  _processTransactionQueue: ->
 
-    deferred = Q.defer()
+    if @_transactionQueue.length > 0
+      @currTransaction = @_transactionQueue.shift()
+      @currTransaction.execute()
+      .fin =>
+        @currTransaction = null
+        # continue with next transaction
+        @_processTransactionQueue()
 
-    xx = setTimeout ->
-      deferred.resolve()
-    , delayMs
-
-    deferred.promise
-
-  ###*
-    sends a command message to Newton device
-    accepts command name or ID, ex: 'kDNewtonName' or 'name'
-  @method sendCommand 
-  ###
-  sendCommand: (command, data) ->
-    #@_checkProcessing()
-    @_checkSocket()
-    #@processBegin()
-    console.log "#{@constructor.name} send command #{command}"
-    command = EventCommand.parse command, data
-    data_ = command.toBinary()
-    _bytes = @socket.write(data_)
-    #@processFinish()
-    Q(_bytes)
-
-  listenForCommand: (commandName, data, cb, finishCmdName) ->
-    @_checkSocket()
-
-    result = Q.defer()
-
-    if typeof data is 'function'
-      cb = data
+    else
+      @once 'transaction-queued', =>
+        @_processTransactionQueue()
     
-    listenCb = (data) =>
-      command = EventCommand.parseFromBinary(data)
-      console.log "#{@constructor.name} listening for #{commandName}, #{command.name} command received"
-      if finishCmdName in [command.name, command.id]
-        console.log "finish cmd received. finish"
-        @socket.removeListener('data',listenCb)
-        result.resolve(command.data)
-      else if commandName is 'all'
-        cb(command)
-      else if commandName in [command.name, command.id]
-        cb(command.data)
-    
-    @socket.on 'data', listenCb
-
-    result.promise
-
   ###*
-    waits for a specific command from Newton device to arrive
-    accepts command name or ID, ex: 'kDNewtonName' or 'name'
-  @method receiveCommand
+  
+  @method 
   ###
-  receiveCommand: (commandName) ->
-    #@_checkProcessing()
-    @_checkSocket()
-    #@processBegin()
-    deferred = Q.defer()
+  _commandReceived: (data) =>
 
-    console.log "#{@constructor.name} waiting for #{commandName}"
-    @socket.once 'data', (data) =>
-      command = EventCommand.parseFromBinary(data)
-      console.log "#{@constructor.name} #{command.name} command received"
-      if commandName in [command.name, command.id]
-        # the command received is the one we were waiting
-        deferred.resolve command.data
-      else if command.id is 'unkn'
-        # unknown command received from Newton. something went wrong
-        deferred.reject
-          errorCode: -28012
-          reason: "unknown command '#{command.data.unknownCommand}' "
-      else if command.id is 'dres'
+    command = EventCommand.parseFromBinary(data)
+    
+    if command.id is 'unkn'
+      # unknown command received from Newton. something went wrong
+      @emit 'error', new DockCommandError
+        errorCode: -28012
+        reason: "unknown command '#{command.data.unknownCommand}' "
+    else if command.id is 'disc'
+      @emit 'error', new DockCommandError
+        errorCode: -28012
+        reason: "Docking canceled"
+    #else if command.id is 'helo'
+      ## if hello received ignore it, Newton will send them to indicate that
+      ## is working and keep connection alive
+    else if command.id is 'dres'
+      # if payload is 0, is successful response
+      if command.data?.errorCode is 0
+        @emitCommandReceived(command)
+      else
         # if a KDResult is received receiving a command it indicates some
         # type of dock error. throw it to handle in the process
-        if command.data?.errorCode is 0
-          deferred.resolve command.data
-        else
-          console.log command.data
-          deferred.reject command.data
-      else if command.id is 'helo'
-        # if hello received ignore it, Newton will send them to indicate that
-        # is working and keep connection alive
-        console.log "kDHello received. Newton is alive and connected"
-        # will have to listen again
-        @receiveCommand(commandName)
-        .then (result) ->
-          deferred.resolve result
-        .catch (err) ->
-          deferred.reject err
-      else if command.id is 'disc'
-        deferred.reject
-          errorCode: -28012
-          reason: "Docking canceled"
-      else
-        # if other command received respond to client with error as this
-        # was not expected
-        @sendCommand('kDResult', {errorCode: -28012})
-        deferred.reject
-          errorCode: -28012
-          reason: "Expected #{commandName}, received #{command.name}."
-      #@processFinish()
-
-    deferred.promise
-  
-  ###*
-  @method commandReceived
-  ###
-  #_commandReceived: (data) ->
-
-  # fake a kDInitiateDocking response to a kDRequestToDock event
-  #StringDecoder = require('string_decoder').StringDecoder
-  #decoder = new StringDecoder('ascii')
-  #message = decoder.write(data)
-  #if message.substr(0,12) == "newtdockrtdk"
-    #setTimeout ->
-      #console.log "send dock response..."
-      #socket.write('newtdockdock\0\0\0\x04\0\0\0\x02')
-    #,1000
+        console.log command.data
+        @emit 'error', new DockCommandError(command.data)
+    else
+      # other command received
+      @emitCommandReceived(command)
       
+  ###*
+  
+  @method 
+  ###
+  emitCommandReceived: (command) ->
+  
+    if @currTransaction?
+      @currTransaction.emit 'command-received', command
+
+    @emit 'command-received', command
+
+    # TO-DO: command dispose
+
+  ###*
+  @method dispose
+  ###
+  dispose: ->
+
+    return if @disposed
+
+    @emit 'dispose', this
+    
+    @removeAllListeners()
+
+    for tx in @_transactionQueue
+      tx.dispose()
+
+    properties = [
+      'socket'
+      '_transactionQueue'
+    ]
+
+    delete this[prop] for prop in properties
+    
+    @disposed = true
+
+    # You’re frozen when your heart’s not open.
+    Object.freeze? this

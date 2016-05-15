@@ -6,7 +6,7 @@ Q                 = require 'q'
 _                 = require 'lodash'
 net               = require 'net'
 
-CommandBroker     = require './commands/command-broker'
+CommandConsumer   = require './commands/command-consumer'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 NewtonStorage     = require './newton-storage'
@@ -14,10 +14,10 @@ NewtonStorage     = require './newton-storage'
 module.exports = class NewtonDevice
   
   ###*
-    TCP socket for device comms
-  @property socket
+    commandBroker instance for command exchange
+  @property commandBroker
   ###
-  socket: null
+  commandBroker: null
   
   ###*
     Received Newton device name
@@ -142,7 +142,7 @@ module.exports = class NewtonDevice
 
     if options
       _.extend this, _.pick options, [
-        'socket'
+        'commandBroker'
         'fNewtonID'
         'fManufacturer'
         'fMachineType'
@@ -170,7 +170,7 @@ module.exports = class NewtonDevice
     _.extend @, StateMachine
     
     # send/receive Newton Dock Commands
-    _.extend @, CommandBroker
+    _.extend @, CommandConsumer
     
     @_initialize(options)
   
@@ -225,17 +225,20 @@ module.exports = class NewtonDevice
     
     # listen Sync command from Newton device. If user taps Dock app Sync icon
     # launch full sync event 
-    @listenForCommand('kDSynchronize', @_fullSync)
-    
+    #@listenForCommand('kDSynchronize', @_fullSync)
+
     # Init store and soup info in order to consume them from lib functions
-    @delay(1000)
-    .then =>
+    setTimeout =>
       @_initStores()
-    .then =>
-      @sendCommand('kDOperationDone')
-    .then =>
-      @delay(1000)
-  
+      .then ->
+        sessionTx = @newCommandTransaction()
+        sessionTx.sendCommand('kDOperationDone')
+      .then ->
+        sessionTx.delay(1000)
+      .then ->
+        sessionTx.finish()
+    , 1000
+
   ###*
     Load store names from device and initialize instances to handle them
   @method initStores
@@ -243,14 +246,17 @@ module.exports = class NewtonDevice
   ###
   _initStores: ->
 
+    tx = @newCommandTransaction()
+
     @stores = {}
-    @sendCommand('kDGetStoreNames')
-    .then =>
-      @receiveCommand('kDStoreNames')
+    tx.sendCommand('kDGetStoreNames')
+    .then ->
+      tx.receiveCommand('kDStoreNames')
     .then (stores) =>
+      tx.finish()
       _.reduce stores, (soFar, store_) =>
         soFar.then =>
-          store_.socket = @socket
+          store_.commandBroker = @commandBroker
           store = @stores[store_.name] = new NewtonStorage(store_)
           # init soups in storage for later use
           store.initSoups()
@@ -289,11 +295,11 @@ module.exports = class NewtonDevice
       console.log "Newton time: "
       console.log newtonTime
   
-  initSync: ->
-    @sendCommand('kDDesktopControl')
+  #initSync: ->
+    #@sendCommand('kDDesktopControl')
   
-  finishSync: ->
-    @sendCommand('kDOperationDone')
+  #finishSync: ->
+    #@sendCommand('kDOperationDone')
 
   getSoup: (soupName) ->
     
@@ -303,28 +309,39 @@ module.exports = class NewtonDevice
       @stores['Internal'].soups[soupName]
 
   appNames: ->
+    
+    tx = @newCommandTransaction()
 
-    @sendCommand("kDGetAppNames")
-    .then =>
-      @receiveCommand("kDAppNames")
-    .then (appNames) =>
-      @sendCommand('kDOperationDone')
+    tx.sendCommand("kDGetAppNames")
+    .then ->
+      tx.receiveCommand("kDAppNames")
+    .then (appNames) ->
+      tx.sendCommand('kDOperationDone')
+      tx.finish()
       appNames
 
   
   callRootMethod: (methodName, args...) ->
 
-    @sendCommand('kDCallRootMethod', {
+    tx = @newCommandTransaction()
+
+    tx.sendCommand('kDCallRootMethod', {
       functionName: methodName
       functionArgs: args
-    }).then =>
-      @receiveCommand('kDCallResult')
+    }).then ->
+      tx.receiveCommand('kDCallResult')
+    .then (result) ->
+      tx.finish()
+      result
 
   notifyUser: (title, message) ->
-    @delay(500)
-    .then =>
+    
+    tx = @newCommandTransaction()
+
+    setTimeout =>
       @callRootMethod 'Notify', 3, title , message
-  
+    , 500
+
   ###*
   @method dispose
   ###
@@ -342,7 +359,7 @@ module.exports = class NewtonDevice
         store.dispose()
     
     properties = [
-      'socket',
+      'commandBroker',
       'stores',
     ]
 

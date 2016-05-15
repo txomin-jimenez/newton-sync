@@ -9,6 +9,7 @@ _                 = require 'lodash'
 Q                 = require 'q'
 
 CommandBroker     = require './commands/command-broker'
+CommandConsumer   = require './commands/command-consumer'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 Enum              = Utils.Enum
@@ -97,7 +98,13 @@ module.exports = class DockSession
     _.extend @, StateMachine
     
     # send/receive Newton Dock Commands
-    _.extend @, CommandBroker
+    _.extend @, CommandConsumer
+    @commandBroker = new CommandBroker
+      socket: @socket
+      timeout: @kDefaultTimeout * 1000
+
+    # open command transaction for session negotiation
+    @sessionTx = @newCommandTransaction()
     
     @_initialize(options)
 
@@ -138,18 +145,24 @@ module.exports = class DockSession
     .then =>
       @_setDockIcons()
     .then =>
-      @sendCommand('kDSetTimeout', @kDefaultTimeout)
+      @sessionTx.sendCommand('kDSetTimeout', @kDefaultTimeout)
     .then =>
       @_negotiatePassword()
     .then =>
+      #console.log "......................"
+      #console.log "session ok"
+      @sessionTx.finish()
       # At this point session is initiated. User should see dock icons in dock
       # app at Newton Device and could start sync process.
-      @newtonDevice.initSyncSession()
+      #@newtonDevice.initSyncSession()
     .then =>
       # inform consumers everything is ready for device manipulation
       @emit "initialized", @newtonDevice
 
     .catch (error) =>
+      #console.log "......................"
+      #console.log "session error"
+      #console.log error
       @emit "error", error
       #console.trace()
       # if something went wrong abort session. Client will have to reconnect
@@ -163,11 +176,11 @@ module.exports = class DockSession
   @method initDockSession
   ###
   _initDockSession: ->
-    @receiveCommand('kDRequestToDock')
+    @sessionTx.receiveCommand('kDRequestToDock')
     .then (protocolVersion) =>
       # send session type. Only sync will be supported
       sessionType = DockSession.sessionTypes.kSynchronizeSession
-      @sendCommand('kDInitiateDocking',{sessionType: sessionType})
+      @sessionTx.sendCommand('kDInitiateDocking',{sessionType: sessionType})
   
   ###*
     send desktop info a save received Newton Device info
@@ -176,17 +189,17 @@ module.exports = class DockSession
   _exchangeDevicesInfo: ->
     
     newtonNameInfo = null
-    @receiveCommand('kDNewtonName')
+    @sessionTx.receiveCommand('kDNewtonName')
     .then (newtonNameInfo_) =>
       newtonNameInfo = newtonNameInfo_
       # kDNewtonName return a set of Newton device info not only a 'name'
       # TO-DO. at this point we do something to load previous sync file and
       # things like that
-      @sendCommand('kDDesktopInfo', @desktopInfo)
+      @sessionTx.sendCommand('kDDesktopInfo', @desktopInfo)
     .then =>
-      @receiveCommand('kDNewtonInfo')
+      @sessionTx.receiveCommand('kDNewtonInfo')
     .then (newtonInfo) =>
-      newtonNameInfo.socket = @socket
+      newtonNameInfo.commandBroker = @commandBroker
       newtonNameInfo.protocolVersion = newtonInfo.protocolVersion
       newtonNameInfo.encryptedKey1 = newtonInfo.encryptedKey1
       newtonNameInfo.encryptedKey2 = newtonInfo.encryptedKey2
@@ -225,9 +238,9 @@ module.exports = class DockSession
     # Show only sync dock icon. only sync will be supported for now
     whichIcons = DockSession.dockIcons.kSyncIcon
 
-    @sendCommand('kDWhichIcons', whichIcons)
+    @sessionTx.sendCommand('kDWhichIcons', whichIcons)
     .then =>
-      @receiveCommand('kDResult')
+      @sessionTx.receiveCommand('kDResult')
   
   ###*
     process Dock <-> Newton password exchange and check 
@@ -235,7 +248,7 @@ module.exports = class DockSession
   ###
   _negotiatePassword: ->
 
-    @receiveCommand('kDPassword')
+    @sessionTx.receiveCommand('kDPassword')
     .then (receivedKey) =>
       # check if received key is encrypted correctly with session password
       receivedKey = @_decryptKey(receivedKey)
@@ -248,19 +261,19 @@ module.exports = class DockSession
         # password and keys (must be a bug)
         newtonKey = @newtonDevice.getEncryptedKeys()
         sendKeys = @_encryptKey(newtonKey)
-        @sendCommand('kDPassword', sendKeys)
+        @sessionTx.sendCommand('kDPassword', sendKeys)
         .then =>
           if @sessionPwd?
-            @receiveCommand('kDResult')
+            @sessionTx.receiveCommand('kDResult')
             .then (pwdResult) =>
-              if pwdResult isnt 0
+              if pwdResult.errorCode isnt 0
                 throw new Error "Invalid Password"
           else
             Q()
       else
         @delay(500)
         .then =>
-          @sendCommand('kDPWWrong')
+          @sessionTx.sendCommand('kDPWWrong')
         .then =>
           # try again. TO-DO: limit to 3 times
           @_negotiatePassword()
@@ -332,6 +345,8 @@ module.exports = class DockSession
     
     @removeAllListeners()
 
+    @commandBroker?.dispose()
+
     @newtonDevice?.dispose()
     
     @socket?.destroy()
@@ -339,6 +354,8 @@ module.exports = class DockSession
     properties = [
       'socket',
       'newtonDevice',
+      'commandBroker'
+      'sessionTx'
     ]
 
     delete this[prop] for prop in properties

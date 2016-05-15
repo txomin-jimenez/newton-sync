@@ -6,6 +6,7 @@
   Provides methods to handle state and process actions
 ###
 _                 = require 'lodash'
+Q                 = require 'q'
 
 EventEmitter      = require('events').EventEmitter
 
@@ -49,7 +50,7 @@ StateMachine =
       @_prevState = @_state
       @_state = PROCESSING
       @_lastError = null
-      @emit trigger @_state, this, @_state
+      @emit @_state, this, @_state
       @emit STATE_CHANGE, this, @_state
     # when PROCESSING do nothing
     return
@@ -72,6 +73,20 @@ StateMachine =
       @emit STATE_CHANGE, this, @_state
     # when READY, FINISHED do nothing  
     return
+
+  whenReady: ->
+    deferred = Q.defer()
+
+    if @isReady() or @isFinished()
+      deferred.resolve()
+    else
+      readyCb = (newState) =>
+        if [READY, FINISHED].indexOf(newState) > -1
+          @removeListener STATE_CHANGE, readyCb
+          deferred.resolve()
+      @on STATE_CHANGE, readyCb
+
+    deferred.promise
 
 # event emit capability
 _.extend StateMachine, EventEmitter.prototype

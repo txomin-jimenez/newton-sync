@@ -18,29 +18,45 @@ ncuServer.on 'new-session', (sessionObj) ->
     console.log "Newton device: ID: #{newtonDevice.fNewtonID}. 
       Name: #{newtonDevice.name}"
 
-    newtonDevice.appNames()
-    .then (appNames) ->
-      console.log "App Names:"
-      console.log appNames
+    #newtonDevice.appNames()
+    #.then (appNames) ->
+      #console.log "App Names:"
+      #console.log appNames
 
-    return
     # lib doesn't handle init/finish operation command yet. have to do it 
     # manually
     newtonDevice.initSync()
     .then ->
       newtonDevice.getSoup('Names')
-    .then (namesSoup) ->
-      
-      # get one random entry from Names
-      namesSoup.getEntry(6)
-      .then (nameFrame) ->
-        # this has no sense, just take it as a example
-        name = nameFrame.name.last or 'Steve'
+      .then (namesSoup) ->
         
-        newtonDevice.notifyUser "Newton NodeJS Sync",
-          "Hi #{name}, welcome to Newton Sync test server."
-        .then ->
-          newtonDevice.finishSync()
+        setTimeout ->
+          # get one random entry from Names
+          namesSoup.getEntry(6)
+          .then (nameFrame) ->
+            # this has no sense, just take it as a example
+            name = nameFrame.name.last or 'Steve'
+            
+            #newtonDevice.notifyUser "Newton NodeJS Sync",
+              #"Hi #{name}, welcome to Newton Sync test server."
+            #.then ->
+            console.log "Hi #{name}!!!"
+            newtonDevice.finishSync()
+      
+        , 1000
+
+      newtonDevice.getSoup('Notes')
+      .then (notesSoup) ->
+        
+        setTimeout ->
+          notesSoup.getEntry(0)
+          .then (noteFrame) ->
+
+            console.log "notes entry:"
+            console.log noteFrame
+            
+            newtonDevice.finishSync()
+        , 3000
 
     .catch (err) ->
       console.log "Error getting entry:"
@@ -52,6 +68,8 @@ ncuServer.on 'new-session', (sessionObj) ->
         "Sorry, something went wrong. Process failed with error '#{errMessage}'"
       .then ->
         newtonDevice.finishSync()
+    
+    
     return
   
     #console.log '###################################################'

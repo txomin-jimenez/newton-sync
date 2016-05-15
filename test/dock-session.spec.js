@@ -18,29 +18,20 @@ describe('Dock Session', function( done ) {
       });
     });
     
-    it('should send a response to a event', function(done) {
-      // newton send Helo command and waits for a Helo from NCU server
-      testNewt.sendCommand('kDHello');
-      testNewt.receiveCommand('kDHello').then(function(){  
-        // disconn and connect again for next test because NCU Server wanted
-        // a KDRequestToDock command by default and we sended kDHello for test.
-        testNewt.disconnect();
-        testNewt.connectToDock().then(function(){
-          done();
-        });
-      }); 
-      // send Hello command from NCU server
-      testServer._connections[(Object.keys(testServer._connections))[0]].sendCommand('kDHello');
-    });
     
     it('should initiate docking on dock request from Newton', function(done) {
+
       // simulate a session init from Newton to Server
-      testNewt.sendCommand('kDRequestToDock',{protocolVersion: 10});
-      testNewt.receiveCommand('kDInitiateDocking')
+      tx = testNewt.newCommandTransaction();
+      tx.sendCommand('kDRequestToDock',{protocolVersion: 10})
       .then(function(){
-        done();
+        tx.receiveCommand('kDInitiateDocking')
+        .then(function(){
+          tx.finish();
+          done();
+        });
       }).catch(function(err){
-        throw new Error(err);
+        throw err;
       });
     });
     
@@ -51,15 +42,16 @@ describe('Dock Session', function( done ) {
       // communication and dock response process is ok.
       testServer._connections[(Object.keys(testServer._connections))[0]].sessionPwd = 'test123';
       global.testDockInfo = null;
-      testNewt.sendCommand('kDNewtonName',testNewt.info());
-      testNewt.receiveCommand('kDDesktopInfo')
+      tx = testNewt.newCommandTransaction();
+      tx.sendCommand('kDNewtonName',testNewt.info());
+      tx.receiveCommand('kDDesktopInfo')
       .then(function(dockInfo){
         testDockInfo = dockInfo;
-        testNewt.sendCommand('kDNewtonInfo', testNewt.newtonInfo); 
-        return testNewt.receiveCommand('kDWhichIcons');
+        tx.sendCommand('kDNewtonInfo', testNewt.newtonInfo); 
+        return tx.receiveCommand('kDWhichIcons');
       }).then(function(){
-        testNewt.sendCommand('kDResult');
-        return testNewt.receiveCommand('kDSetTimeout');
+        tx.sendCommand('kDResult');
+        return tx.receiveCommand('kDSetTimeout');
       }).then(function(){
         var keyData = new Buffer(8);
         keyData.writeUInt32BE(testDockInfo.encryptedKey1, 0);
@@ -71,13 +63,14 @@ describe('Dock Session', function( done ) {
           encryptedKey1: parseInt('0x'+encryptedData.slice(0,8)),
           encryptedKey2: parseInt('0x'+encryptedData.slice(8,16))
         };
-        testNewt.sendCommand('kDPassword', testPassKeys);
-        return testNewt.receiveCommand('kDPassword');
+        tx.sendCommand('kDPassword', testPassKeys);
+        return tx.receiveCommand('kDPassword');
       }).then(function(_passwdRes){
+        tx.finish();
         global.passwdRes = _passwdRes;
         done();
       }).catch(function(err){
-        throw new Error(err);
+        throw err;
       });
     });
 
@@ -86,6 +79,34 @@ describe('Dock Session', function( done ) {
       expect(global.passwdRes.encryptedKey2).to.equal(1631650501);
     });
 
+    it('should send a response to a event', function(done) {
+      // newton send Helo command and waits for a Helo from NCU server
+      tx = testNewt.newCommandTransaction();
+      // send Hello command from NCU server
+      
+      tx.sendCommand('kDResult',0)
+      .then(function(){
+        return tx.sendCommand('kDHello');
+      }).then(function(){
+        tx.receiveCommand('kDHello').then(function(){  
+          tx.finish();
+          // disconn and connect again for next test because NCU Server wanted
+          // a KDRequestToDock command by default and we sended kDHello for test.
+          testNewt.disconnect();
+          testNewt.connectToDock().then(function(){
+            done();
+          });
+        }).catch(function(err){
+          done(err);
+        });
+        sessionObj = testServer._connections[(Object.keys(testServer._connections))[0]];
+        sessionObj.sendCommand('kDHello');
+
+      }).catch(function(err){
+        throw err;
+      });
+    });
+    
     after(function() {
       
       testNewt.disconnect();

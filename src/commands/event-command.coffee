@@ -53,7 +53,7 @@ module.exports = class EventCommand
   @_dockCommands = dockCommands
 
   # event emit feature
-  _.extend EventCommand, EventEmitter.prototype
+  _.extend @prototype, EventEmitter.prototype
   
   ###*
     generate a command from JSON data (usually from app data)

@@ -10,6 +10,7 @@ var MockNewton,
 var path = require( 'path' );
 var newtonSync = require( path.resolve( path.join( __dirname, '../..' ) ) );
 var NewtonDevice = newtonSync.NewtonDevice;
+var CommandBroker = require( path.resolve( path.join( __dirname, '../../lib/commands/command-broker' ) ) );
 
 var net = require('net');
 var Q = require('q');
@@ -40,8 +41,10 @@ module.exports = MockNewton = (function(superClass) {
       port: 3679
     };
     _.extend(opts_, options);
-    if (this.socket === null) {
-      this.socket = net.connect(opts_, function() {
+    if (this.commandBroker === null) {
+      this_ = this;
+      socket_ = net.connect(opts_, function() {
+        this_.commandBroker = new CommandBroker({socket: socket_});
         return deferred.resolve();
       });
     }
@@ -53,9 +56,10 @@ module.exports = MockNewton = (function(superClass) {
   @method disconnect
   */
   MockNewton.prototype.disconnect = function() {
-    if (this.socket !== null) {
-      this.socket.end();
-      this.socket = null;
+    if (this.commandBroker !== null) {
+      this.commandBroker.socket.end();
+      this.commandBroker.dispose();
+      this.commandBroker = null;
       return null;
     }
   };

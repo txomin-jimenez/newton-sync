@@ -5,18 +5,18 @@ Q                 = require 'q'
 _                 = require 'lodash'
 net               = require 'net'
 
-CommandBroker     = require './commands/command-broker'
+CommandConsumer   = require './commands/command-consumer'
 StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 
 module.exports = class NewtonSoup
-  
+
   ###*
-    TCP socket for device comms
-  @property socket
+    commandBroker instance for command exchange
+  @property commandBroker
   ###
-  socket: null
-  
+  commandBroker: null
+
   ###*
     Soup name
   @property name
@@ -24,53 +24,53 @@ module.exports = class NewtonSoup
   name: null
 
   ###*
-    owner Newton app identifier. It describes which app this soup belongs to  
+    owner Newton app identifier. It describes which app this soup belongs to
   @property ownerApp
   ###
   ownerApp: null
-  
+
   ###*
-    owner Newton app complete name 
+    owner Newton app complete name
   @property ownerAppName
   ###
   ownerAppName: null
 
   ###*
-    Extended name. I think it's used for show it to the user 
+    Extended name. I think it's used for show it to the user
   @property userName
   ###
   userName: null
-  
+
   ###*
-    Soup description. I think its used for show it to the user 
+    Soup description. I think its used for show it to the user
   @property userDescr
   ###
   userDescr: null
 
   ###*
-    Soup indexes. Indexes are defined for speed up queries and sorts in soups 
+    Soup indexes. Indexes are defined for speed up queries and sorts in soups
   @property indexes
   ###
   indexes: null
 
   ###*
-    User defined fields (not sure about this)  
-  @property customFields 
+    User defined fields (not sure about this)
+  @property customFields
   ###
   customFields: null
-  
+
   ###*
-    unknown. don't know yet   
+    unknown. don't know yet
   @property initHook
   ###
   initHook: null
 
   ###*
-    Last time NCK did a soup backup 
+    Last time NCK did a soup backup
   @property nckLastBackupTime
   ###
   nckLastBackupTime: null
-  
+
   ###*
   @class NewtonSoup
   @constructor
@@ -79,123 +79,170 @@ module.exports = class NewtonSoup
 
     if options
       _.extend this, _.pick options, [
-        'socket'
+        'commandBroker'
         'name'
       ]
-    
+
     # add machine-state and event emit capability
     _.extend @, StateMachine
-    
+
     # send/receive Newton Dock Commands
-    _.extend @, CommandBroker
-    
+    _.extend @, CommandConsumer
+
     @_initialize(options)
-  
+
   ###*
     all init method go here
   @method initialize
   ###
   _initialize: (options) ->
-    
+
     null
-  
+
   ###*
     Get Soup info from device. used in soup initialization
   @method loadSoupInfo
   ###
-  loadSoupInfo: ->
+  loadSoupInfo:  ->
 
-    @sendCommand('kDSetSoupGetInfo', @name)
-    .then =>
-      @receiveCommand('kDSoupInfo')
-    .then (soupInfo) =>
-      # TO-DO: if soup didn't change since last sync kDResult is received
+    tx = @newCommandTransaction()
+
+    tx.sendCommand('kDSetSoupGetInfo', @name)
+    .then ->
+      # if soup didn't change since last sync kDResult is received
       # and soupInfo wont be received
-      
-      # fix this name because we want camelCase names
-      @nckLastBackupTime = Utils.newtonTime.toJSON(soupInfo.NCKLastBackupTime)
+      tx.receiveCommand(['kDSoupInfo','kDResult'])
+    .then (command) =>
+      if command.name is 'kDSoupInfo'
 
-      if soupInfo?
-        _.extend @, _.pick soupInfo, [
-          'customFields'
-        ]
+        soupInfo = command.data
 
-      if soupInfo.soupDef?
-        _.extend @, _.pick soupInfo.soupDef, [
-          'name'
-          'userName'
-          'userDescr'
-          'ownerApp'
-          'ownerAppName'
-          'indexes'
-          'initHook'
-        ]
+        if soupInfo?
+          # fix this name because we want camelCase names
+          @nckLastBackupTime = Utils.newtonTime.toJSON(soupInfo.NCKLastBackupTime)
+          _.extend @, _.pick soupInfo, [
+            'customFields'
+          ]
+
+        if soupInfo.soupDef?
+          _.extend @, _.pick soupInfo.soupDef, [
+            'name'
+            'userName'
+            'userDescr'
+            'ownerApp'
+            'ownerAppName'
+            'indexes'
+            'initHook'
+          ]
+      tx.finish()
 
   ###*
     Iterate all entries from soup and execute processEntryFn iterator
-  @method allEntries  
+  @method allEntries
   ###
   allEntries: (processEntryFn) ->
 
-    @sendCommand('kDSetCurrentSoup', @name)
-    .then =>
-      @receiveCommand('kDResult')
-    .then (result_)=>
-      @sendCommand('kDSendSoup')
-    .then =>
-      @listenForCommand('kDEntry',null, processEntryFn, 'kDBackupSoupDone')
-  
+    tx = @newCommandTransaction()
+
+    @setCurrentSoup(tx)
+    .then ->
+      tx.sendCommand('kDSendSoup')
+    .then ->
+
+      deferred = Q.defer()
+
+      # receive loop for entry commands from Newton device
+      receiveEntry = ->
+        tx.receiveCommand(['kDEntry','kDBackupSoupDone'])
+        .then (command) ->
+          if command.name is 'kDEntry'
+            processEntryFn(command.data)
+            # wait for next entry
+            receiveEntry()
+          else
+            # all entries received. finish
+            tx.finish()
+            deferred.resolve()
+        .catch (err) ->
+          deferred.reject(err)
+      ####
+
+      deferred.promise
+
   ###*
-    Newton must know before entry operations which soup we want to handle 
+    Newton must know before entry operations which soup we want to handle
   @method setCurrentSoup
   ###
-  setCurrentSoup: ->
+  setCurrentSoup: (tx) ->
 
-    @sendCommand('kDSetCurrentSoup', @name)
-    .then =>
-      @receiveCommand('kDResult')
-    .then (result) =>
-      if result?.errorCode isnt 0
-        throw new Error "error #{result.errorCode} setting current soup #{@name}"
+    if @commandBroker.currentSoup is @name
+      Q()
+    else
+      tx.sendCommand('kDSetCurrentSoup', @name)
+      .then =>
+        tx.receiveCommand('kDResult')
+      .then (result) =>
+        if result?.errorCode isnt 0
+          throw new Error "error #{result.errorCode} setting current soup #{@name}"
+        else
+          @commandBroker.currentSoup = @name
+
+        null
 
   ###*
     Get entry from soup by entry ID
-  @method getEntry  
+  @method getEntry
   ###
   getEntry: (docId) ->
 
-    @setCurrentSoup()
-    .then =>
-      @sendCommand('kDReturnEntry',docId)
-    .then =>
-      @receiveCommand('kDEntry')
-  
+    tx = @newCommandTransaction()
+
+    @setCurrentSoup(tx)
+    .then ->
+      tx.sendCommand('kDReturnEntry',docId)
+    .then ->
+      tx.receiveCommand('kDEntry')
+    .then (entry) ->
+      tx.finish()
+      entry
+
   ###*
     Add new entry to soup
   @method addEntry
   ###
   addEntry: (entryData) ->
 
-    @setCurrentSoup()
-    .then =>
-      @sendCommand('kDAddEntry',entryData)
-    .then =>
-      @receiveCommand('kDAddedID')
-  
+    tx = @newCommandTransaction()
+
+    @setCurrentSoup(tx)
+    .then ->
+      tx.sendCommand('kDAddEntry',entryData)
+    .then ->
+      tx.receiveCommand('kDAddedID')
+    .then (newId) ->
+      tx.finish()
+      newId
+
   ###*
-    Delete entry from soup by ID 
+    Delete entry from soup by ID
   @method deleteEntry
   ###
   deleteEntry: (entryIds) ->
 
+    # array of IDs to delete accepted
     if not entryIds.length?
       entryIds = [entryIds]
 
-    @setCurrentSoup()
-    .then =>
-      @sendCommand('kDDeleteEntries', entryIds)
-    .then =>
+    tx = @newCommandTransaction()
+
+    @setCurrentSoup(tx)
+    .then ->
+      tx.sendCommand('kDDeleteEntries', entryIds)
+    .then ->
       @receiveCommand('kDResult')
+    .then (result) ->
+      tx.finish()
+      result
 
   ###*
   @method dispose
@@ -205,16 +252,16 @@ module.exports = class NewtonSoup
     return if @disposed
 
     @emit 'dispose', this
-    
+
     @removeAllListeners()
 
     properties = [
-      'socket',
+      'commandBroker',
       'indexes',
     ]
 
     delete this[prop] for prop in properties
-    
+
     @disposed = true
 
     # You’re frozen when your heart’s not open.

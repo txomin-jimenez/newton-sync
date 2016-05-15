@@ -5,11 +5,11 @@ Desktop > Newton
 
 ULong 'cgfn'
 ULong length
-NSOF function name symbol 
+NSOF function name symbol
 NSOF function args array
 
-This command asks the Newton to call the specified function and return its 
-result. This function must be a global function. The return value from the 
+This command asks the Newton to call the specified function and return its
+result. This function must be a global function. The return value from the
 function is sent to the desktop with a kDCallResult command.
 ###
 EventCommand        = require '../event-command'

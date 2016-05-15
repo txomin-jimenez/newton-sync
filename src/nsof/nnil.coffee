@@ -1,7 +1,7 @@
 
 module.exports =
 
-  # kNIL is a special type for null values. encoders can use this types in 
+  # kNIL is a special type for null values. encoders can use this types in
   # order to reduce the size of the streamed data
   # kNIL=10 (byte)
   encode: ->

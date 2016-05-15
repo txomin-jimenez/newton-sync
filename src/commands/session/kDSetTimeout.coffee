@@ -8,7 +8,7 @@ ULong length = 4
 ULong timeout in seconds
 
 This command sets the timeout for the connection (the time the Newton will wait
-to receive data before it disconnects). This time is typically set to 30 seconds.
+to receive data before it disconnects). This time is typically set to 30 seconds
 ###
 EventCommand        = require '../event-command'
 

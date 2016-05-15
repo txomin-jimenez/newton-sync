@@ -5,11 +5,11 @@ Desktop > Newton
 
 ULong 'ress'
 ULong length
-SLong error code 
+SLong error code
 NSOF  error string
 
-Reports a desktop error to the Newton. The string is included since the Newton 
-doesn't know how to decode all the desktop errors 
+Reports a desktop error to the Newton. The string is included since the Newton
+doesn't know how to decode all the desktop errors
 
 ###
 EventCommand      = require '../event-command'

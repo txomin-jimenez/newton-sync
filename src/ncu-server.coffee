@@ -24,7 +24,7 @@ module.exports = class NcuServer
   
   ###*
     http port for http connections, Defaults to Newton Port
-  @property httpPort 
+  @property httpPort
   ###
   httpPort: NcuServer.newtonPort
   
@@ -87,7 +87,7 @@ module.exports = class NcuServer
 
     @emit "new-session", sessionObj
     
-    # push to connections queue  
+    # push to connections queue
     @_connections[connId] = sessionObj
    
     # on socket destroy remove from connection queue

@@ -11,7 +11,14 @@ module.exports = (grunt) ->
           ext: '.js'
         }]
     coffeelint:
-      lib: ['src/**/*.coffee']
+      lib:
+        files:
+          src: ['src/**/*.coffee']
+        options:
+          # ignore this rule or our command classes will not pass
+          camel_case_classes:
+            level: 'ignore'
+
     # just run jshint for tests only because src is coffee
     jshint:
       files: [
@@ -28,6 +35,7 @@ module.exports = (grunt) ->
       files: ['src/**/*.coffee', 'test/**/*.js']
       tasks: [
         'coffee'
+        'coffeelint'
         'jshint'
         'simplemocha'
       ]
@@ -54,6 +62,7 @@ module.exports = (grunt) ->
   ]
   grunt.registerTask 'default', [
     'coffee'
+    'coffeelint'
     'jshint'
     'simplemocha'
   ]

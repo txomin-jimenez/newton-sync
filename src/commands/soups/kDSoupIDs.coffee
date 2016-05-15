@@ -5,7 +5,7 @@ Desktop < Newton
 
 ULong 'sids'
 
-This command is sent in response to a kDGetSoupIDs command. It returns all 
+This command is sent in response to a kDGetSoupIDs command. It returns all
 the IDs from the current soup.
 ###
 EventCommand      = require '../event-command'

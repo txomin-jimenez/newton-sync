@@ -8,8 +8,8 @@ ULong length
 NSOF  store frame
 
 This command is the same as kDSetCurrentStore except that it returns the names
-of the soups on the stores as if you'd send a kDGetSoupNames command. It sets 
-the current store on the Newton. A store frame is sent to uniquely identify the 
+of the soups on the stores as if you'd send a kDGetSoupNames command. It sets
+the current store on the Newton. A store frame is sent to uniquely identify the
 store to be set:
   
 { name: "Gilligan’s Island",

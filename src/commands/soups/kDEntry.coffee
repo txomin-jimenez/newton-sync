@@ -7,7 +7,7 @@ ULong 'ntry'
 ULong length
 NSOF  soup entry
 
-This command is sent in response to a KDReturnEntry command. The entry in the 
+This command is sent in response to a KDReturnEntry command. The entry in the
 current soup specified by the ID in the KDReturnEntry command is returned.
 ###
 EventCommand      = require '../event-command'

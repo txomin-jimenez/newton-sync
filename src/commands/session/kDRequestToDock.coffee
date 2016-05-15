@@ -8,8 +8,8 @@ ULong length = 4
 ULong protocol version
 
 The Newton initiates a session by sending this command to the desktop, which is
-listening on the network, serial, etc. The protocol version is the version of 
-the messaging protocol that's being used by the Newton ROM. The desktop sends 
+listening on the network, serial, etc. The protocol version is the version of
+the messaging protocol that's being used by the Newton ROM. The desktop sends
 a kDInitiateDocking command in response.
 ###
 EventCommand        = require '../event-command'

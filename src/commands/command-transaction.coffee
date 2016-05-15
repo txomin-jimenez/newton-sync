@@ -24,14 +24,14 @@ module.exports = class CommandTransaction
   socket: null
   
   ###*
-    current transaction state 
+    current transaction state
   @property state
   @private
   ###
   _state: null
   
   ###*
-    previous transaction state 
+    previous transaction state
   @property prevState
   @private
   ###
@@ -77,35 +77,35 @@ module.exports = class CommandTransaction
 
   ###*
   
-  @method 
+  @method state
   ###
   state: ->
     @_state
 
   ###*
   
-  @method 
+  @method isReady
   ###
   isReady: ->
     @_state is READY
 
   ###*
   
-  @method 
+  @method isProcessing
   ###
   isProcessing: ->
     @_state in [SEND, RECEIVE]
   
   ###*
   
-  @method 
+  @method isFinished
   ###
   isFinished: ->
     @_state is FINISH
   
   ###*
   
-  @method 
+  @method processReady
   ###
   _processReady: ->
     @_prevState = @_state
@@ -115,7 +115,7 @@ module.exports = class CommandTransaction
   
   ###*
   
-  @method 
+  @method processSend
   ###
   _processSend: ->
     @_prevState = @_state
@@ -125,7 +125,7 @@ module.exports = class CommandTransaction
 
   ###*
   
-  @method 
+  @method processReceive
   ###
   _processReceive: ->
     @_prevState = @_state
@@ -135,7 +135,7 @@ module.exports = class CommandTransaction
   
   ###*
   
-  @method 
+  @method processFinish
   ###
   _processFinish: ->
     @_prevState = @_state
@@ -145,7 +145,7 @@ module.exports = class CommandTransaction
 
   ###*
   
-  @method 
+  @method execute
   ###
   execute: ->
     @_processCommandQueue()
@@ -155,7 +155,7 @@ module.exports = class CommandTransaction
   
   ###*
   
-  @method 
+  @method finish
   ###
   finish: ->
 
@@ -169,7 +169,7 @@ module.exports = class CommandTransaction
 
   ###*
   
-  @method 
+  @method whenReady
   ###
   whenReady: ->
 
@@ -185,7 +185,7 @@ module.exports = class CommandTransaction
   
   ###*
   
-  @method 
+  @method whenFinished
   ###
   whenFinished: ->
 
@@ -201,11 +201,12 @@ module.exports = class CommandTransaction
 
   ###*
   
-  @method 
+  @method sendCommand
   ###
   sendCommand: (command, data) ->
     
-    #console.log " ================= (#{@consumerId} - #{@cid}) - sendCommand #{command}"
+    #console.log " ================= (#{@consumerId} - #{@cid}) -
+    #sendCommand #{command}"
 
     deferred = Q.defer()
 
@@ -230,7 +231,7 @@ module.exports = class CommandTransaction
 
   ###*
   
-  @method 
+  @method receiveCommand
   ###
   receiveCommand: (commandName) ->
 
@@ -242,7 +243,7 @@ module.exports = class CommandTransaction
  
   ###*
   
-  @method 
+  @method queueCommand
   ###
   _queueCommand: (action, command, data, deferred) ->
 
@@ -256,7 +257,7 @@ module.exports = class CommandTransaction
     
   ###*
   
-  @method 
+  @method processCommandQueue
   ###
   _processCommandQueue: ->
     
@@ -278,8 +279,8 @@ module.exports = class CommandTransaction
       else if comm.action is 'receive'
         @_receiveCommand(comm.command)
       else
-       @_finishTransaction()
-       Q()
+        @_finishTransaction()
+        Q()
       ).then (result) =>
         comm.deferred.resolve(result)
         # continue processing more commands from queue
@@ -300,7 +301,7 @@ module.exports = class CommandTransaction
   ###*
     sends a command message to Newton device via tcp socket
     accepts command name or ID, ex: 'kDNewtonName' or 'name'
-  @method sendCommand 
+  @method sendCommand
   ###
   _sendCommand: (command, data) ->
     
@@ -354,7 +355,7 @@ module.exports = class CommandTransaction
       
       @_processReady()
       
-      # accept multiple commands for receive. sometimes newton will 
+      # accept multiple commands for receive. sometimes newton will
       # send in response different commands
       if commandName instanceof Array and command.name in commandName
         deferred.resolve command
@@ -364,14 +365,10 @@ module.exports = class CommandTransaction
         # unexpected command received.
         # send error to remote and reject operation
         @_sendCommand('kDResult', {errorCode: -28012})
-        console.log "---------------->"
-        console.log "(#{@consumerId} - #{@cid}) - Expected #{commandName}, received #{command.name}."
-        console.log "---------------->"
-    
-
         deferred.reject new DockCommandError
           errorCode: -28012
-          reason: "(#{@consumerId} - #{@cid}) - Expected #{commandName}, received #{command.name}."
+          reason: "(#{@consumerId} - #{@cid}) - Expected #{commandName},
+          received #{command.name}."
     
       #command.dispose()
 
@@ -379,7 +376,7 @@ module.exports = class CommandTransaction
   
   ###*
   
-  @method 
+  @method finishTransaction
   ###
   _finishTransaction: ->
 

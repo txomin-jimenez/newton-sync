@@ -7,7 +7,7 @@ ULong 'adid'
 ULong length
 ULong ID
 
-This command is sent in response to a kDAddEntry command from the PC. It 
+This command is sent in response to a kDAddEntry command from the PC. It
 returns the ID that the entry was given when it was added to the current soup.
 
 ###

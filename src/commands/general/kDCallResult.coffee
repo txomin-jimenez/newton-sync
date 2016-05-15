@@ -7,7 +7,7 @@ ULong 'cres'
 ULong length
 NSOF  result ref
 
-This command is sent in response to a kDCallGlobalFunction or kDCallRootMethod 
+This command is sent in response to a kDCallGlobalFunction or kDCallRootMethod
 command. The ref is the return value from the function or method called.
 ###
 EventCommand      = require '../event-command'

@@ -24,7 +24,7 @@ module.exports = class CommandBroker
   ###
   timeout: 30000
   
-  ### 
+  ###
   @property transactionQueue
   ###
   _transactionQueue: null
@@ -61,7 +61,7 @@ module.exports = class CommandBroker
 
   ###*
   
-  @method 
+  @method newTransaction
   ###
   newTransaction: (consumerId)->
 
@@ -77,7 +77,7 @@ module.exports = class CommandBroker
   
   ###*
   
-  @method 
+  @method processTransactionQueue
   ###
   _processTransactionQueue: ->
 
@@ -95,7 +95,7 @@ module.exports = class CommandBroker
     
   ###*
   
-  @method 
+  @method commandReceived
   ###
   _commandReceived: (data) =>
 
@@ -128,7 +128,7 @@ module.exports = class CommandBroker
       
   ###*
   
-  @method 
+  @method emitCommandReceived
   ###
   emitCommandReceived: (command) ->
   

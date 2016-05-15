@@ -6,7 +6,7 @@ Desktop < Newton
 ULong 'bsdn'
 ULong length = 0
 
-This command terminates the sequence of commands sent in response to a 
+This command terminates the sequence of commands sent in response to a
 kDBackupSoup command.
 ###
 EventCommand        = require '../event-command'

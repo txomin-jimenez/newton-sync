@@ -5,13 +5,16 @@
 Q                 = require 'q'
 _                 = require 'lodash'
 net               = require 'net'
+EventEmitter      = require('events').EventEmitter
 
 CommandConsumer   = require './commands/command-consumer'
-StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 NewtonStorage     = require './newton-storage'
 
 module.exports = class NewtonDevice
+  
+  # event emit feature
+  _.extend @prototype, EventEmitter.prototype
   
   ###*
     commandBroker instance for command exchange
@@ -29,8 +32,8 @@ module.exports = class NewtonDevice
   # Newton Information block, as returned by kDNewtonName.
   
   ###*
-    A unique id to identify a particular newton 
-  @property fNewtonID 
+    A unique id to identify a particular newton
+  @property fNewtonID
   ###
   fNewtonID: null
 
@@ -55,20 +58,20 @@ module.exports = class NewtonDevice
 
   ###*
     A decimal integer indicating the language (English, German, French)
-    and the stage of the ROM (alpha, beta, final) 
+    and the stage of the ROM (alpha, beta, final)
   @property fROMStage
   ###
   fROMStage: null
 
   ###*
     Device RAM size in bytes
-  @property fRAMSize 
+  @property fRAMSize
   ###
   fRAMSize: null
 
   ###*
-    An integer representing the height of the screen in pixels	
-  @property fScreenHeight 
+    An integer representing the height of the screen in pixels
+  @property fScreenHeight
   ###
   fScreenHeight: null
 
@@ -92,7 +95,7 @@ module.exports = class NewtonDevice
 
   ###*
     Signature (internal identifier) of the internal store
-  @property fInternalStoreSig 
+  @property fInternalStoreSig
   ###
   fInternalStoreSig: null
 
@@ -115,7 +118,7 @@ module.exports = class NewtonDevice
   fScreenDepth: null
 
   ###*
-    various System bit flags 
+    various System bit flags
     1 = has serial number
     2 = has target protocol
   @property fSystemFlags
@@ -124,13 +127,13 @@ module.exports = class NewtonDevice
   
   ###*
     Device serial number if present
-  @property fSerialNumber 
+  @property fSerialNumber
   ###
   fSerialNumber: null
   
   ###*
     Target protocol if present
-  @property fTargetProtocol 
+  @property fTargetProtocol
   ###
   fTargetProtocol: null
 
@@ -166,9 +169,6 @@ module.exports = class NewtonDevice
         'encryptedKey2'
       ]
   
-    # add machine-state and event emit capability
-    _.extend @, StateMachine
-    
     # send/receive Newton Dock Commands
     _.extend @, CommandConsumer
     
@@ -183,7 +183,7 @@ module.exports = class NewtonDevice
     null
   
   ###*
-    Return a object with device info 
+    Return a object with device info
   @method info
   ###
   info: ->
@@ -209,7 +209,7 @@ module.exports = class NewtonDevice
     ]
   
   ###*
-    Get encryption keys used for session password exchange 
+    Get encryption keys used for session password exchange
   @method getEncryptedKeys
   ###
   getEncryptedKeys: ->
@@ -224,7 +224,7 @@ module.exports = class NewtonDevice
   initSyncSession: ->
     
     # listen Sync command from Newton device. If user taps Dock app Sync icon
-    # launch full sync event 
+    # launch full sync event
     #@listenForCommand('kDSynchronize', @_fullSync)
 
     # Init store and soup info in order to consume them from lib functions
@@ -291,7 +291,7 @@ module.exports = class NewtonDevice
       @sendCommand('kDLastSyncTime')
     .then =>
       @receiveCommand('kDCurrentTime')
-    .then (newtonTime) =>
+    .then (newtonTime) ->
       console.log "Newton time: "
       console.log newtonTime
   

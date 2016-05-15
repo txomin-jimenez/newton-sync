@@ -14,7 +14,7 @@ module.exports =
 
     slotValues = _.map arrayObject, (val) ->
       encode(val, isRoot = false)
-    
+
     # concat arrays into an array of buffers and concat into a new buffer
     Buffer.concat [
       arrayHeader
@@ -26,7 +26,7 @@ module.exports =
     arrayByteLength = 1 # head byte
     arrayLength = NXLong.decode(buffer.slice(1))
     arrayByteLength = arrayByteLength + arrayLength.bytesRead
-    
+
     resArray = new Array(arrayLength.value)
     # continue reading values until result array is completed
     _.forEach resArray, (value, key) ->
@@ -36,8 +36,8 @@ module.exports =
       resArray[key] = value_.value
       # sum read bytes
       arrayByteLength = arrayByteLength + value_.bytesRead
-    #### 
-   
+    ####
+
     return(
       value: resArray
       bytesRead: arrayByteLength # head byte is summed earlier

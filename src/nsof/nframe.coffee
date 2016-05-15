@@ -8,12 +8,12 @@ module.exports =
   # encode JSON object to Newton Frame
   #   kFrame=6 (byte)
   #   Number of slots (xlong)
-  #   Slot tags in ascending order (symbol objects) Slot values in ascending 
+  #   Slot tags in ascending order (symbol objects) Slot values in ascending
   #   order (objects)
   encode: (object) ->
     encode = require('./index').encode
     keyCount = _.size(object)
-     
+
     frameHeader = new Buffer(1)
     frameHeader.writeUInt8(6,0) # kFrame=6
 
@@ -32,7 +32,8 @@ module.exports =
         slotValues.push encode(value, isRoot = false)
 
     # concat arrays into an array of buffers and concat into a new buffer
-    Buffer.concat [frameHeader, NXLong.encode(keyCount)].concat(slotTags,slotValues)
+    val = [frameHeader, NXLong.encode(keyCount)].concat(slotTags,slotValues)
+    Buffer.concat val
   
   decode: (buffer, precedents) ->
     decode= require('./index').decode
@@ -49,7 +50,7 @@ module.exports =
       keyArray[key] = value_.value
       # sum read bytes
       objByteLength = objByteLength + value_.bytesRead
-    #### 
+    ####
    
     # continue reading values and assigning them to key values
     resObj = {}

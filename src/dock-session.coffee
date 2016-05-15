@@ -7,10 +7,10 @@
 
 _                 = require 'lodash'
 Q                 = require 'q'
+EventEmitter      = require('events').EventEmitter
 
 CommandBroker     = require './commands/command-broker'
 CommandConsumer   = require './commands/command-consumer'
-StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 Enum              = Utils.Enum
 ByteEnum          = Utils.ByteEnum
@@ -19,6 +19,9 @@ NewtonDesCrypto   = require 'newton-des-crypto'
 NewtonDevice      = require './newton-device'
 
 module.exports = class DockSession
+  
+  # event emit feature
+  _.extend @prototype, EventEmitter.prototype
   
   # dock session types
   @sessionTypes = Enum(
@@ -67,7 +70,7 @@ module.exports = class DockSession
 
   ###*
     Info used to communicate with newton device. we send this info in session
-    negotiation. this describes us as an newton sync compatible app. 
+    negotiation. this describes us as an newton sync compatible app.
   @property desktopInfo
   ###
   desktopInfo: null
@@ -93,9 +96,6 @@ module.exports = class DockSession
         'sessionPwd'
         'newtonDevice'
       ]
-    
-    # add machine-state and event emit capability
-    _.extend @, StateMachine
     
     # send/receive Newton Dock Commands
     _.extend @, CommandConsumer
@@ -128,12 +128,12 @@ module.exports = class DockSession
             Desktop                Newton
                             <  kDRequestToDock
         kDInitiateDocking   >
-                            <  kDNewtonName 
+                            <  kDNewtonName
         kDDesktopInfo       >
                             <  kDNewtonInfo
-        kDWhichIcons        >                     optional 
+        kDWhichIcons        >                     optional
                             <  kDResult
-        kDSetTimeout        >                     optional 
+        kDSetTimeout        >                     optional
                             <  kDPassword
   @method initSession
   ###
@@ -207,7 +207,7 @@ module.exports = class DockSession
   
   ###*
     Init dock info for session negotiation
-  @method initDockInfo 
+  @method initDockInfo
   ###
   initDockInfo: ->
     # generate some keys for later password exchange
@@ -243,7 +243,7 @@ module.exports = class DockSession
       @sessionTx.receiveCommand('kDResult')
   
   ###*
-    process Dock <-> Newton password exchange and check 
+    process Dock <-> Newton password exchange and check
   @method negotiatePassword
   ###
   _negotiatePassword: ->
@@ -265,7 +265,7 @@ module.exports = class DockSession
         .then =>
           if @sessionPwd?
             @sessionTx.receiveCommand('kDResult')
-            .then (pwdResult) =>
+            .then (pwdResult) ->
               if pwdResult.errorCode isnt 0
                 throw new Error "Invalid Password"
           else
@@ -290,7 +290,8 @@ module.exports = class DockSession
     
     # NewtonDesCrypto expects key pair as a single 64bit hex string
     # encryptedData also is a 64bit hex string
-    encryptedData = NewtonDesCrypto.encryptBlock(@sessionPwd, keyData.toString('hex'))
+    encryptedData = NewtonDesCrypto.encryptBlock(@sessionPwd, keyData
+    .toString('hex'))
   
     encryptedKey=
       encryptedKey1: parseInt('0x'+encryptedData.slice(0,8))
@@ -310,7 +311,8 @@ module.exports = class DockSession
     
     # NewtonDesCrypto expects key pair as a single 64bit hex string
     # decryptedData also is a 64bit hex string
-    decryptedData = NewtonDesCrypto.decryptBlock(@sessionPwd, keyData.toString('hex'))
+    decryptedData = NewtonDesCrypto.decryptBlock(@sessionPwd, keyData
+    .toString('hex'))
   
     decryptedKey =
       encryptedKey1: parseInt('0x'+decryptedData.slice(0,8))

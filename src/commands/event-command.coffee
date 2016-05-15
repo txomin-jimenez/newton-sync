@@ -1,5 +1,5 @@
 ###*
-  Newton communicates with the desktop by exchanging Newton event commands. 
+  Newton communicates with the desktop by exchanging Newton event commands.
   The general command structure looks like this:
     ULong 'newt' // event header
     ULong 'dock' // event header
@@ -11,12 +11,12 @@
     data following the length field.
   • Data is padded with nulls to a 4 byte boundary.
   • Multi-byte values are in big-endian order.
-  • Strings are null-terminated 2-byte UniChar strings unless otherwise 
+  • Strings are null-terminated 2-byte UniChar strings unless otherwise
     specified.
-  • NewtonScript objects are sent in Newton Streamed Object Format (NSOF) (see 
+  • NewtonScript objects are sent in Newton Streamed Object Format (NSOF) (see
     the Newton Formats document, chapter 4).
 
-  All commands begin with the 'newt', 'dock' event header as shown in the 
+  All commands begin with the 'newt', 'dock' event header as shown in the
   general form. For simplicity, they are not included or implemented here
 @class EventCommand
 ###
@@ -75,7 +75,7 @@ module.exports = class EventCommand
   
   ###*
    get command ID from binary command buffer
-  @method getCommandId 
+  @method getCommandId
   ###
   @getCommandId: (buffer) ->
     # ignore first eight letters as always is same 'newtdock' header
@@ -142,7 +142,7 @@ module.exports = class EventCommand
         'length'
       ]
     
-      # parse binary data to JSON if command is received from Newton device  
+      # parse binary data to JSON if command is received from Newton device
       if options.data instanceof Buffer
         if options.data.length > 4
           # if buffer length is 4 only data length received will be 0
@@ -188,7 +188,7 @@ module.exports = class EventCommand
   @method dataToBinary
   ###
   dataToBinary: ->
-    # this boilerplate sets 0 as data payload 
+    # this boilerplate sets 0 as data payload
     data = new Buffer(4)
     data.writeUInt32BE(0,0)
     data

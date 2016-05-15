@@ -1,17 +1,20 @@
 ###*
-@class NewtonStorage 
+@class NewtonStorage
 ###
 Q                 = require 'q'
 _                 = require 'lodash'
 net               = require 'net'
+EventEmitter      = require('events').EventEmitter
 
 CommandConsumer   = require './commands/command-consumer'
-StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 
 NewtonSoup        = require './newton-soup'
 
 module.exports = class NewtonStorage
+  
+  # event emit feature
+  _.extend @prototype, EventEmitter.prototype
   
   ###*
     commandBroker instance for command exchange
@@ -31,49 +34,49 @@ module.exports = class NewtonStorage
   signature: null
 
   ###*
-    Storage size in bytes  
+    Storage size in bytes
   @property totalSize
   ###
   totalSize: null
 
   ###*
-    Used storage in bytes 
+    Used storage in bytes
   @property usedSize
   ###
   usedSize: null
 
   ###*
-    Storage kind: (Internal/External) 
+    Storage kind: (Internal/External)
   @property kind
   ###
   kind: null
 
   ###*
-    Storage info 
+    Storage info
   @property info
   ###
   info: null
 
   ###*
-    Write protection 
+    Write protection
   @property readOnly
   ###
   readOnly: null
 
   ###*
-    password protected storage 
+    password protected storage
   @property storePassword
   ###
   storePassword: null
 
   ###*
-    Store is default store for new entries 
+    Store is default store for new entries
   @property defaultStore
   ###
   defaultStore: null
 
   ###*
-    store revision identifier 
+    store revision identifier
   @property storeVersion
   ###
   storeVersion: null
@@ -105,9 +108,6 @@ module.exports = class NewtonStorage
         'defaultStore'
         'storeVersion'
       ]
-    
-    # add machine-state and event emit capability
-    _.extend @, StateMachine
     
     # send/receive Newton Dock Commands
     _.extend @, CommandConsumer
@@ -146,7 +146,7 @@ module.exports = class NewtonStorage
             soup = @soups[soupName] = new NewtonSoup
               name: soupName
               commandBroker: @commandBroker
-            # load soup info for later use  
+            # load soup info for later use
             soup.loadSoupInfo()
           else
             Q()
@@ -175,7 +175,7 @@ module.exports = class NewtonStorage
         null
   
   ###*
-    Store frame representation as needed for Newton command exchange 
+    Store frame representation as needed for Newton command exchange
   @method toFrame
   ###
   toFrame: ->

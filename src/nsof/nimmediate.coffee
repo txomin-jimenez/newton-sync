@@ -2,9 +2,9 @@ NXLong = require './nxlong'
 NBoolean          = require './nboolean'
 
 module.exports =
-  
-  # Immediate objects are represented by kImmediate followed by a Ref that 
-  # gives the value of the immediate 
+
+  # Immediate objects are represented by kImmediate followed by a Ref that
+  # gives the value of the immediate
   #   kImmediate=0 (byte)
   #   Immediate Ref (xlong)
   encode: (ref, type = 'integer') ->
@@ -19,7 +19,7 @@ module.exports =
         throw new Error "#{type} not implemented yet"
 
     Buffer.concat [new Buffer([0x00]), value]
-  
+
   decode: (buffer) ->
     if buffer[1] is 0x1A
       # its a boolean true value

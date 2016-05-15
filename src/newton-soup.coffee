@@ -4,13 +4,16 @@
 Q                 = require 'q'
 _                 = require 'lodash'
 net               = require 'net'
+EventEmitter      = require('events').EventEmitter
 
 CommandConsumer   = require './commands/command-consumer'
-StateMachine      = require './commands/state-machine'
 Utils             = require './utils'
 
 module.exports = class NewtonSoup
 
+  # event emit feature
+  _.extend @prototype, EventEmitter.prototype
+  
   ###*
     commandBroker instance for command exchange
   @property commandBroker
@@ -83,9 +86,6 @@ module.exports = class NewtonSoup
         'name'
       ]
 
-    # add machine-state and event emit capability
-    _.extend @, StateMachine
-
     # send/receive Newton Dock Commands
     _.extend @, CommandConsumer
 
@@ -119,7 +119,9 @@ module.exports = class NewtonSoup
 
         if soupInfo?
           # fix this name because we want camelCase names
-          @nckLastBackupTime = Utils.newtonTime.toJSON(soupInfo.NCKLastBackupTime)
+          @nckLastBackupTime = Utils.newtonTime
+          .toJSON(soupInfo.NCKLastBackupTime)
+          
           _.extend @, _.pick soupInfo, [
             'customFields'
           ]
@@ -179,11 +181,12 @@ module.exports = class NewtonSoup
       Q()
     else
       tx.sendCommand('kDSetCurrentSoup', @name)
-      .then =>
+      .then ->
         tx.receiveCommand('kDResult')
       .then (result) =>
         if result?.errorCode isnt 0
-          throw new Error "error #{result.errorCode} setting current soup #{@name}"
+          throw new Error "error #{result.errorCode} setting current
+          soup #{@name}"
         else
           @commandBroker.currentSoup = @name
 

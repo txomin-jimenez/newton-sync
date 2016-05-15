@@ -6,7 +6,7 @@ ULong 'sync'
 ULong length = 0
 
 This command is sent to the desktop when the user taps the Synchronize button on
-the Newton. The user wishes to synchronize Newton data with desktop applications.
+the Newton. The user wishes to synchronize Newton data with desktop applications
 ###
 EventCommand        = require '../event-command'
 

@@ -8,10 +8,10 @@ ULong length = 4
 ULong icon mask
 
 This command is used to customize the set of icons shown on the Newton. The icon
-mask indicates which icons should be shown; see the Icon mask enum in 
+mask indicates which icons should be shown; see the Icon mask enum in
 DockSession. For example, to show all icons you would use this:
   
-kBackupIcon + kSyncIcon + kInstallIcon + kRestoreIcon + kImportIcon + 
+kBackupIcon + kSyncIcon + kInstallIcon + kRestoreIcon + kImportIcon +
 kKeyboardIcon
 ###
 EventCommand        = require '../event-command'

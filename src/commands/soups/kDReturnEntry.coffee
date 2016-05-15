@@ -7,7 +7,7 @@ ULong 'rete'
 ULong length = 4
 ULong id // ID of the entry to return
 
-This command is sent when the PC wants to retrieve a changed entry from the 
+This command is sent when the PC wants to retrieve a changed entry from the
 current soup.
 ###
 EventCommand      = require '../event-command'

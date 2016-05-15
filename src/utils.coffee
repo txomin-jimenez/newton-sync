@@ -8,7 +8,7 @@ unicharEncode = new Iconv('UTF-8','UTF-16BE')
 
 module.exports =
 
-  # Creates enum - like type    
+  # Creates enum - like type
   Enum: ->
     values = arguments
     # get the varargs and save them to a 'values' variable.
@@ -23,7 +23,7 @@ module.exports =
       # add the index to the list of all indices
       i++
     self
- 
+
   # Creates enum - like type. This time for byte shift mask values. used in
   # dock session icons enum
   ByteEnum: ->
@@ -40,21 +40,22 @@ module.exports =
       # add the index to the list of all indices
       i++
     self
-  
+
   unichar:
 
     toString: (uniCharBuff)->
       # use iconv to convert UTF-16BE buffer to UTF-8 buffer and then to string
       unicharDecode.convert(uniCharBuff).toString('utf8').slice(0,-1)
-    
+
     toUniCharBuffer: (text) ->
       unicharEncode.convert("#{text}\u0000")
-  
+
   newtonTime:
 
     toJSON: (minutesSince1904) ->
-      moment('1904-01-01T00:00:00.000Z').add(minutesSince1904,'minutes').toJSON()
-       
+      moment('1904-01-01T00:00:00.000Z').add(minutesSince1904,'minutes')
+      .toJSON()
+
     new: (newDate) ->
       newDate = moment(newDate) unless newDate instanceof moment
       # minutes since Newton Epoch (1904)

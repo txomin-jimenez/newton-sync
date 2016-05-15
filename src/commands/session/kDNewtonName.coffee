@@ -8,7 +8,7 @@ ULong   length
 struct  NewtonInfo
 UniChar name[]
 
-The Newton's name can be used to locate the proper synchronize file. The 
+The Newton's name can be used to locate the proper synchronize file. The
 version info includes things like machine type (e.g. J1), ROM version, etc;
 ###
 EventCommand      = require '../event-command'
@@ -20,7 +20,7 @@ module.exports = class kDNewtonName extends EventCommand
   
   id: kDNewtonName.id
   name: 'kDNewtonName'
-  #length: 
+  #length:
 
   constructor: ->
     super

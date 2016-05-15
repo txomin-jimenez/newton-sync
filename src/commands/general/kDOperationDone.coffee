@@ -6,10 +6,10 @@ Desktop <> Newton
 uLong 'opdn'
 ULong length = 0
 
-This command is sent when an operation is completed. It't only sent in 
-situations where there might be some ambiguity. Currently, there are two 
-situations where this is sent. When the desktop finishes a restore it sends 
-this command. When a sync is finished and there are no sync results 
+This command is sent when an operation is completed. It't only sent in
+situations where there might be some ambiguity. Currently, there are two
+situations where this is sent. When the desktop finishes a restore it sends
+this command. When a sync is finished and there are no sync results
 (conflicts) to send to the newton the desktop sends this command.
 ###
 EventCommand      = require '../event-command'

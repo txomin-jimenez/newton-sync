@@ -1,8 +1,8 @@
 NXLong = require './nxlong'
 
 module.exports =
-  
-  # Symbol are used for frame slot key or class names    
+
+  # Symbol are used for frame slot key or class names
   #   kSymbol=7 (byte)
   #   Number of characters in name (xlong) Name (bytes)
   encode: (key) ->
@@ -13,7 +13,7 @@ module.exports =
       NXLong.encode(key.length)
       Buffer(key,'ascii')
     ]
-  
+
   decode: (buffer) ->
     stringLength = NXLong.decode(buffer.slice(1))
     stringVal  = buffer.slice(2,2 + stringLength.value)

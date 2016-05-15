@@ -5,12 +5,12 @@ Desktop <> Newton
 
 ULong   'pass'
 ULong   length=8
-ULong   encrypted key 1 
+ULong   encrypted key 1
 ULong   encrypted key 2
 
-When sent by the Newton, this command returns the key received in the 
+When sent by the Newton, this command returns the key received in the
 kDDesktopInfomessage encrypted using the password.
-When sent by the desktop, this command returns the key received in the 
+When sent by the desktop, this command returns the key received in the
 kDNewtonInfomessage encrypted using the password.
 ###
 EventCommand      = require '../event-command'

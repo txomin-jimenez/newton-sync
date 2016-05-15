@@ -4,7 +4,7 @@ NXLong            = require './nxlong'
 
 module.exports =
 
-  # encode string  
+  # encode string
   #   kString=8 (byte)
   #   Number of bytes in string (xlong)
   #   String (halfwords)
@@ -17,7 +17,7 @@ module.exports =
       NXLong.encode(unicharValue.length)
       unicharValue
     ]
-  
+
   decode: (buffer) ->
     stringLengthXlong = NXLong.decode(buffer.slice(1))
     binaryValue = buffer.slice(2, 2 + stringLengthXlong.value)

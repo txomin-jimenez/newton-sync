@@ -66,17 +66,17 @@ module.exports =
     
     ntype = buffer[0]
     
-    # we have to populate precedents array in order, but we have to decode 
+    # we have to populate precedents array in order, but we have to decode
     # child objects first so we push an empty object ref and replace when
     # object is fully decoded
     precedentRefObj =
       value: null
     
-    # The tag byte is followed an ID, called a precedent ID. The IDs are 
+    # The tag byte is followed an ID, called a precedent ID. The IDs are
     # assigned consecutively, starting with 0 for the root object, and are used
-    # by the kPrecedent tag to generate backward pointer references to objects 
-    # that have already been introduced. Note that no object may be traversed 
-    # more than once; any pointers to previously traversed objects must be 
+    # by the kPrecedent tag to generate backward pointer references to objects
+    # that have already been introduced. Note that no object may be traversed
+    # more than once; any pointers to previously traversed objects must be
     # represented with kPrecedent. Immediate objects cannot be precedents; all
     # precedents are heap objects (binary objects, arrays, and frames).
     if [3,4,5,6,7,8,11,12].indexOf(ntype) > -1

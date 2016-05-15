@@ -8,7 +8,7 @@ ULong length
 NSOF  [names] // array of strings
 NSOF  [signatures/    // array of corresponding soup signatures
 
-This command is sent in response to a kDGetSoupNames command. It returns 
+This command is sent in response to a kDGetSoupNames command. It returns
 the names and signatures of all the soups in the current store.
 ###
 EventCommand      = require '../event-command'

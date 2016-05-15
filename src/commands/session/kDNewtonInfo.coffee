@@ -5,11 +5,11 @@ Desktop < Newton
 
 ULong   'ninf'
 ULong   length=12
-ULong   protocol version 
-ULong   encrypted key 1 
+ULong   protocol version
+ULong   encrypted key 1
 ULong   encrypted key 2
 
-This command is used to negotiate the real protocol version. See kDDesktopInfo 
+This command is used to negotiate the real protocol version. See kDDesktopInfo
 for more info. The password key is used as part of password verification.
 ###
 EventCommand      = require '../event-command'

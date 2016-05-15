@@ -6,7 +6,7 @@ Desktop <> Newton
 ULong 'disc'
 ULong length=0
 
-This command is sent by either desktop or Newton when the docking operation 
+This command is sent by either desktop or Newton when the docking operation
 is complete.
 ###
 EventCommand        = require '../event-command'

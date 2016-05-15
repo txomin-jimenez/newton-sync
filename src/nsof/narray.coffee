@@ -16,7 +16,9 @@ module.exports =
     
     # decode array Class. Usually it's a Symbol but someone could use
     # kPrecedent so we have to use generic decode function
-    arrayClass = decode(buffer.slice(arrayByteLength), precedents, isRoot = false)
+    arrayClass = decode(buffer.slice(arrayByteLength), precedents,
+    isRoot = false)
+
     arrayByteLength = arrayByteLength + arrayClass.bytesRead
     
     resArray = new Array(arrayLength.value)
@@ -28,7 +30,7 @@ module.exports =
       resArray[key] = value_.value
       # sum read bytes
       arrayByteLength = arrayByteLength + value_.bytesRead
-    #### 
+    ####
    
     return(
       value:

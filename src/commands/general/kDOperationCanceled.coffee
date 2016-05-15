@@ -6,8 +6,8 @@ Desktop <> Newton
 uLong 'opca'
 ULong length = 0
 
-This command is sent when the user cancels an operation. The receiver should 
-return to the "ready" state and acknowledge the cancellation with a 
+This command is sent when the user cancels an operation. The receiver should
+return to the "ready" state and acknowledge the cancellation with a
 kDOpCanceledAck command..
 ###
 EventCommand      = require '../event-command'

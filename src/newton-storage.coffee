@@ -174,6 +174,15 @@ module.exports = class NewtonStorage
 
         null
   
+  getSoup: (soupName) ->
+
+    tx = @newCommandTransaction()
+
+    @setCurrentStore(tx)
+    .then =>
+      tx.finish()
+      @soups[soupName]
+
   ###*
     Store frame representation as needed for Newton command exchange
   @method toFrame

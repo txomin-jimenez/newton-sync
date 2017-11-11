@@ -75,6 +75,12 @@ module.exports = class NewtonSoup
   nckLastBackupTime: null
 
   ###*
+    Soup data when loaded from device
+  @property data
+  ###
+  data: null
+
+  ###*
   @class NewtonSoup
   @constructor
   ###
@@ -88,7 +94,7 @@ module.exports = class NewtonSoup
 
     # send/receive Newton Dock Commands
     _.extend @, CommandConsumer
-
+    
     @_initialize(options)
 
   ###*
@@ -105,14 +111,17 @@ module.exports = class NewtonSoup
   ###
   loadSoupInfo:  ->
 
-    tx = @newCommandTransaction()
+    @data = []
 
+    tx = @newCommandTransaction()
+  
     tx.sendCommand('kDSetSoupGetInfo', @name)
     .then ->
       # if soup didn't change since last sync kDResult is received
       # and soupInfo wont be received
       tx.receiveCommand(['kDSoupInfo','kDResult'])
     .then (command) =>
+
       if command.name is 'kDSoupInfo'
 
         soupInfo = command.data
@@ -126,18 +135,23 @@ module.exports = class NewtonSoup
             'customFields'
           ]
 
-        if soupInfo.soupDef?
-          _.extend @, _.pick soupInfo.soupDef, [
-            'name'
-            'userName'
-            'userDescr'
-            'ownerApp'
-            'ownerAppName'
-            'indexes'
-            'initHook'
-          ]
+          if soupInfo.soupDef?
+            _.extend @, _.pick soupInfo.soupDef, [
+              'name'
+              'userName'
+              'userDescr'
+              'ownerApp'
+              'ownerAppName'
+              'indexes'
+              'initHook'
+            ]
       tx.finish()
+      
+      @allEntries (entry) =>
+        @data.push entry
 
+      
+        
   ###*
     Iterate all entries from soup and execute processEntryFn iterator
   @method allEntries
@@ -158,9 +172,9 @@ module.exports = class NewtonSoup
         tx.receiveCommand(['kDEntry','kDBackupSoupDone'])
         .then (command) ->
           if command.name is 'kDEntry'
-            processEntryFn(command.data)
             # wait for next entry
             receiveEntry()
+            processEntryFn(command.data)
           else
             # all entries received. finish
             tx.finish()
@@ -168,6 +182,7 @@ module.exports = class NewtonSoup
         .catch (err) ->
           deferred.reject(err)
       ####
+      receiveEntry()
 
       deferred.promise
 
@@ -180,6 +195,7 @@ module.exports = class NewtonSoup
     if @commandBroker.currentSoup is @name
       Q()
     else
+      console.log "set current soup #{@name}"
       tx.sendCommand('kDSetCurrentSoup', @name)
       .then ->
         tx.receiveCommand('kDResult')

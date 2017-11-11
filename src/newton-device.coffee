@@ -223,21 +223,25 @@ module.exports = class NewtonDevice
   ###
   initSyncSession: ->
     
+    deferred = Q.defer()
+    
     # listen Sync command from Newton device. If user taps Dock app Sync icon
     # launch full sync event
     #@listenForCommand('kDSynchronize', @_fullSync)
 
     # Init store and soup info in order to consume them from lib functions
     setTimeout =>
+      return if @disposed
+      #@_initFullSync()
+      #.then =>
       @_initStores()
       .then ->
-        sessionTx = @newCommandTransaction()
-        sessionTx.sendCommand('kDOperationDone')
-      .then ->
-        sessionTx.delay(1000)
-      .then ->
-        sessionTx.finish()
+        deferred.resolve()
+      .catch (err) ->
+        deferred.reject(err)
     , 1000
+
+    deferred.promise
 
   ###*
     Load store names from device and initialize instances to handle them
@@ -261,6 +265,16 @@ module.exports = class NewtonDevice
           # init soups in storage for later use
           store.initSoups()
       , Q()
+    .then =>
+      # Newton needs a done command
+      tx = @newCommandTransaction()
+      tx.delay(1000)
+    .then ->
+      tx.sendCommand('kDOperationDone')
+    .then ->
+      tx.delay(1000)
+    .then ->
+      tx.finish()
 
   ###*
   ###
@@ -282,31 +296,31 @@ module.exports = class NewtonDevice
   ###
   _initFullSync: ->
     
-    @sendCommand('kDGetSyncOptions')
-    .then =>
-      @receiveCommand('kDSyncOptions')
+    tx = @newCommandTransaction()
+
+    tx.sendCommand('kDGetSyncOptions')
+    .then ->
+      tx.receiveCommand('kDSyncOptions')
     .then (syncOptions) =>
       console.log "received sync options:"
       console.log syncOptions
-      @sendCommand('kDLastSyncTime')
-    .then =>
-      @receiveCommand('kDCurrentTime')
+      tx.sendCommand('kDLastSyncTime')
+    .then ->
+      tx.receiveCommand('kDCurrentTime')
     .then (newtonTime) ->
       console.log "Newton time: "
       console.log newtonTime
   
-  #initSync: ->
-    #@sendCommand('kDDesktopControl')
+  initSync: ->
+    @sendCommand('kDDesktopControl')
   
-  #finishSync: ->
-    #@sendCommand('kDOperationDone')
+  finishSync: ->
+    @sendCommand('kDOperationDone')
 
   getSoup: (soupName) ->
     
     # get from internal store for now
-    @stores['Internal'].setCurrentStore()
-    .then (result) =>
-      @stores['Internal'].soups[soupName]
+    @stores['Internal'].getSoup(soupName)
 
   appNames: ->
     
@@ -336,8 +350,6 @@ module.exports = class NewtonDevice
 
   notifyUser: (title, message) ->
     
-    tx = @newCommandTransaction()
-
     setTimeout =>
       @callRootMethod 'Notify', 3, title , message
     , 500

@@ -90,12 +90,8 @@ describe('Dock Session', function( done ) {
       }).then(function(){
         tx.receiveCommand('kDHello').then(function(){  
           tx.finish();
-          // disconn and connect again for next test because NCU Server wanted
-          // a KDRequestToDock command by default and we sended kDHello for test.
           testNewt.disconnect();
-          testNewt.connectToDock().then(function(){
-            done();
-          });
+          done();
         }).catch(function(err){
           done(err);
         });

@@ -114,9 +114,13 @@ module.exports = class DockSession
   ###
   _initialize: (options) ->
     
-    # end session if client disconnects
-    @socket.on 'end', =>
-      @endSession()
+    # end session when command broker detected error or disconnection
+    @commandBroker.on "error", (error) =>
+      @emit 'error', error
+      @endSession(false)
+
+    @commandBroker.on "dispose", =>
+      @endSession(false)
 
     @initDockInfo()
    
@@ -154,7 +158,7 @@ module.exports = class DockSession
       @sessionTx.finish()
       # At this point session is initiated. User should see dock icons in dock
       # app at Newton Device and could start sync process.
-      #@newtonDevice.initSyncSession()
+      @newtonDevice.initSyncSession()
     .then =>
       # inform consumers everything is ready for device manipulation
       @emit "initialized", @newtonDevice
@@ -168,7 +172,7 @@ module.exports = class DockSession
       # if something went wrong abort session. Client will have to reconnect
       # if error persist it must be a bug or something
       setTimeout =>
-        @endSession()
+        @endSession(false)
       , 1000
   
   ###*
@@ -183,7 +187,7 @@ module.exports = class DockSession
       @sessionTx.sendCommand('kDInitiateDocking',{sessionType: sessionType})
   
   ###*
-    send desktop info a save received Newton Device info
+    send desktop info and save received Newton Device info
   @method exchangeDevicesInfo
   ###
   _exchangeDevicesInfo: ->
@@ -199,6 +203,7 @@ module.exports = class DockSession
     .then =>
       @sessionTx.receiveCommand('kDNewtonInfo')
     .then (newtonInfo) =>
+      # Initialize Newton Device handler at this point
       newtonNameInfo.commandBroker = @commandBroker
       newtonNameInfo.protocolVersion = newtonInfo.protocolVersion
       newtonNameInfo.encryptedKey1 = newtonInfo.encryptedKey1
@@ -290,8 +295,8 @@ module.exports = class DockSession
     
     # NewtonDesCrypto expects key pair as a single 64bit hex string
     # encryptedData also is a 64bit hex string
-    encryptedData = NewtonDesCrypto.encryptBlock(@sessionPwd, keyData
-    .toString('hex'))
+    hexKey = keyData.toString('hex')
+    encryptedData = NewtonDesCrypto.encryptBlock(@sessionPwd, hexKey)
   
     encryptedKey=
       encryptedKey1: parseInt('0x'+encryptedData.slice(0,8))
@@ -311,8 +316,8 @@ module.exports = class DockSession
     
     # NewtonDesCrypto expects key pair as a single 64bit hex string
     # decryptedData also is a 64bit hex string
-    decryptedData = NewtonDesCrypto.decryptBlock(@sessionPwd, keyData
-    .toString('hex'))
+    hexKey = keyData.toString('hex')
+    decryptedData = NewtonDesCrypto.decryptBlock(@sessionPwd, hexKey)
   
     decryptedKey =
       encryptedKey1: parseInt('0x'+decryptedData.slice(0,8))
@@ -325,16 +330,18 @@ module.exports = class DockSession
     End session with device
   @method endSession
   ###
-  endSession: ->
-
-    # wait a bit, Newtons are getting old and they need their time
-    setTimeout =>
-      @socket.end()
-
+  endSession: (sendDisconnect = true)->
+    end = =>
+      @socket?.end()
       @emit "finished", this
-
       @dispose()
-    , 1000
+
+    if sendDisconnect
+      @sendCommand('kDDisconnect')
+      .then end
+    else
+      setTimeout end, 0
+
 
   ###*
   @method dispose
@@ -350,8 +357,6 @@ module.exports = class DockSession
     @commandBroker?.dispose()
 
     @newtonDevice?.dispose()
-    
-    @socket?.destroy()
     
     properties = [
       'socket',

@@ -36,6 +36,7 @@ dockCommands = {}
 loadCommClasses = ->
   return if _.size(dockCommands) > 0
   recursiveReadSync(__dirname).forEach (commandFilename) ->
+    return unless commandFilename.substr(commandFilename.length - 3) == '.js'
     try
       commandClass = require commandFilename
       if commandClass.id?

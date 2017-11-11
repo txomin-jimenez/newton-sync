@@ -59,11 +59,21 @@ module.exports = class CommandBroker
       @_processTransactionQueue()
       @socket.on 'data', @_commandReceived
 
+      @socket.on 'error', (error) =>
+        @emit 'error', error
+        @dispose()
+
+      # end session if client disconnects
+      @socket.on 'end', =>
+        @dispose()
+
   ###*
   
   @method newTransaction
   ###
   newTransaction: (consumerId)->
+
+    return null if @disposed
 
     transaction = new CommandTransaction
       socket: @socket
@@ -100,6 +110,8 @@ module.exports = class CommandBroker
   _commandReceived: (data) =>
 
     command = EventCommand.parseFromBinary(data)
+
+    #  console.log "broker command received", command.name || command.id
     
     if command.id is 'unkn'
       # unknown command received from Newton. something went wrong
@@ -113,15 +125,15 @@ module.exports = class CommandBroker
     #else if command.id is 'helo'
       ## if hello received ignore it, Newton will send them to indicate that
       ## is working and keep connection alive
-    else if command.id is 'dres'
-      # if payload is 0, is successful response
-      if command.data?.errorCode is 0
-        @emitCommandReceived(command)
-      else
-        # if a KDResult is received receiving a command it indicates some
-        # type of dock error. throw it to handle in the process
-        console.log command.data
-        @emit 'error', new DockCommandError(command.data)
+    #else if command.id is 'dres'
+      ## if payload is 0, is successful response
+      #if command.data?.errorCode is 0
+        #@emitCommandReceived(command)
+      #else
+        ## if a KDResult is received receiving a command it indicates some
+        ## type of dock error. throw it to handle in the process
+        #console.log command.data
+        #@emit 'error', new DockCommandError(command.data)
     else
       # other command received
       @emitCommandReceived(command)
@@ -138,20 +150,23 @@ module.exports = class CommandBroker
     @emit 'command-received', command
 
     # TO-DO: command dispose
+  
 
   ###*
   @method dispose
   ###
   dispose: ->
-
+    
     return if @disposed
-
+    
     @emit 'dispose', this
     
     @removeAllListeners()
 
     for tx in @_transactionQueue
       tx.dispose()
+
+    @socket?.destroy()
 
     properties = [
       'socket'

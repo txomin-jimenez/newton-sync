@@ -305,20 +305,20 @@ module.exports = class CommandTransaction
   ###
   _sendCommand: (command, data) ->
     
-    #console.log "(#{@consumerId} - #{@cid}) - sendCommand #{command}"
+    # console.log "(#{@consumerId} - #{@cid}) - sendCommand #{command}"
 
     deferred = Q.defer()
     
     send_ = =>
       @_processSend()
       
-      #console.log " -- send command #{command}"
+      # console.log " -- send command #{command}"
       
       command = EventCommand.parse command, data
       data_ = command.toBinary()
       @socket.write data_, =>
         deferred.resolve()
-        #console.log " -- send command #{command.id} SENT"
+        # console.log " -- send command #{command.id} SENT"
         @_processReady()
         command.dispose()
     if @_prevState is SEND
@@ -341,17 +341,17 @@ module.exports = class CommandTransaction
   ###
   _receiveCommand: (commandName) ->
 
-    #console.log "(#{@consumerId} - #{@cid}) - receiveCommand #{commandName}"
+    # console.log "(#{@consumerId} - #{@cid}) - receiveCommand #{commandName}"
 
-    @_processReceive()
+    @_processReceive(commandName)
     
     deferred = Q.defer()
     
-    #console.log " -- receive command #{commandName}"
+    # console.log " -- receive command #{commandName}"
 
     @once 'command-received', (command) =>
     
-      #console.log "(#{@consumerId} - #{@cid}) - #{commandName} RECEIVED"
+      # console.log "(#{@consumerId} - #{@cid}) - #{commandName} RECEIVED"
       
       @_processReady()
       
@@ -361,14 +361,21 @@ module.exports = class CommandTransaction
         deferred.resolve command
       else if commandName in [command.name, command.id]
         deferred.resolve command.data
+      else if command.id is 'dres'
+        # if payload is 0, is successful response
+        if command.data?.errorCode is 0
+          deferred.resolve command.data
+        else
+          deferred.reject(new DockCommandError(command.data))
       else
         # unexpected command received.
         # send error to remote and reject operation
         @_sendCommand('kDResult', {errorCode: -28012})
-        deferred.reject new DockCommandError
-          errorCode: -28012
-          reason: "(#{@consumerId} - #{@cid}) - Expected #{commandName},
-          received #{command.name}."
+        .then =>
+          deferred.reject new DockCommandError
+            errorCode: -28012
+            reason: "(#{@consumerId} - #{@cid}) - Expected #{commandName},
+            received #{command.name}."
     
       #command.dispose()
 

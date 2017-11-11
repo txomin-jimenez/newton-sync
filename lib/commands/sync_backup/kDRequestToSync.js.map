@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDRequestToSync.js",
+  "sourceRoot": "../../../src/commands/sync_backup/",
+  "sources": [
+    "kDRequestToSync.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;AAAA;AAAA,MAAA,6BAAA;IAAA;;;EAWA,YAAA,GAAsB,OAAA,CAAQ,kBAAR;;EAEtB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,eAAC,CAAA,EAAD,GAAK;;8BAEL,EAAA,GAAI,eAAe,CAAC;;8BACpB,IAAA,GAAM;;8BACN,MAAA,GAAQ;;IAEK,yBAAA;MACX,kDAAA,SAAA;IADW;;;;KARgC;AAb/C"
+}

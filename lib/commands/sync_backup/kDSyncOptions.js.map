@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDSyncOptions.js",
+  "sourceRoot": "../../../src/commands/sync_backup/",
+  "sources": [
+    "kDSyncOptions.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA;AAAA,MAAA,kCAAA;IAAA;;;EAwCA,YAAA,GAAoB,OAAA,CAAQ,kBAAR;;EACpB,KAAA,GAAoB,OAAA,CAAQ,aAAR;;EAEpB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,aAAC,CAAA,EAAD,GAAK;;4BAEL,EAAA,GAAI,aAAa,CAAC;;4BAClB,IAAA,GAAM;;4BACN,MAAA,GAAQ;;IAEK,uBAAA;MACX,gDAAA,SAAA;IADW;;4BAGb,cAAA,GAAgB,SAAC,UAAD;MACd,IAAC,CAAA,MAAD,GAAU,UAAU,CAAC,YAAX,CAAwB,CAAxB;aAEV,IAAC,CAAA,IAAD,GAAQ,IAAC,CAAA;IAHK;;;;KAX2B;AA3C7C"
+}

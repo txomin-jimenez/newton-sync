@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDPWWrong.js",
+  "sourceRoot": "../../../src/commands/session/",
+  "sources": [
+    "kDPWWrong.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;;;AAAA;AAAA,MAAA,uBAAA;IAAA;;;EAaA,YAAA,GAAsB,OAAA,CAAQ,kBAAR;;EAEtB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,SAAC,CAAA,EAAD,GAAK;;wBAEL,EAAA,GAAI,SAAS,CAAC;;wBACd,IAAA,GAAM;;wBACN,MAAA,GAAQ;;IAEK,mBAAA;MACX,4CAAA,SAAA;IADW;;wBAGb,cAAA,GAAgB,SAAC,UAAD;aACd;IADc;;;;KAXuB;AAfzC"
+}

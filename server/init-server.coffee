@@ -18,59 +18,72 @@ ncuServer.on 'new-session', (sessionObj) ->
     console.log "Newton device: ID: #{newtonDevice.fNewtonID}. 
       Name: #{newtonDevice.name}"
 
+    # setTimeout ->
+    #   newtonDevice.notifyUser "Newton NodeJS Sync",
+    #     "Hi, welcome to Newton Sync test server."
+    # , 1000
+
+    # setTimeout ->
+    #   #newtonDevice.finishSync()
+    #   newtonDevice.notifyUser "Newton NodeJS Sync", "Bye!"
+      
+    #   setTimeout ->
+    #     newtonDevice.sendCommand('kDResult', 0)
+    #     .then =>
+    #       sessionObj.endSession()
+    #   , 2000
+    # , 5000
+
+    return
+
     #newtonDevice.appNames()
     #.then (appNames) ->
       #console.log "App Names:"
       #console.log appNames
 
-    # lib doesn't handle init/finish operation command yet. have to do it 
-    # manually
-    newtonDevice.initSync()
-    .then ->
-      newtonDevice.getSoup('Names')
-      .then (namesSoup) ->
-        
-        setTimeout ->
-          # get one random entry from Names
-          namesSoup.getEntry(6)
-          .then (nameFrame) ->
-            # this has no sense, just take it as a example
-            name = nameFrame.name.last or 'Steve'
-            
-            #newtonDevice.notifyUser "Newton NodeJS Sync",
-              #"Hi #{name}, welcome to Newton Sync test server."
-            #.then ->
-            console.log "Hi #{name}!!!"
-            newtonDevice.finishSync()
+    #newtonDevice.getSoup('Names')
+    #.then (namesSoup) ->
       
-        , 1000
+      #setTimeout ->
+        ## get one random entry from Names
+        #namesSoup.getEntry(6)
+        #.then (nameFrame) ->
+          ## this has no sense, just take it as a example
+          #name = nameFrame.name.last or 'Steve'
+          
+          ##newtonDevice.notifyUser "Newton NodeJS Sync",
+            ##"Hi #{name}, welcome to Newton Sync test server."
+          ##.then ->
+          #console.log "Hi #{name}!!!"
+      #, 1000
 
-      newtonDevice.getSoup('Notes')
-      .then (notesSoup) ->
-        
-        setTimeout ->
-          notesSoup.getEntry(0)
-          .then (noteFrame) ->
-
-            console.log "notes entry:"
-            console.log noteFrame
-            
-            newtonDevice.finishSync()
-        , 3000
-
-    .catch (err) ->
-      console.log "Error getting entry:"
-      console.log err
-    
-      errMessage = err.message.substr(0,60) + "..."
+    #newtonDevice.getSoup('Notes')
+    #.then (notesSoup) ->
       
-      newtonDevice.notifyUser "Error",
-        "Sorry, something went wrong. Process failed with error '#{errMessage}'"
-      .then ->
-        newtonDevice.finishSync()
+      #console.log notesSoup.name
+      #console.log notesSoup.userName
+      #console.log notesSoup.userDescr
+      #console.log notesSoup.nckLastBackupTime
+      
+      #setTimeout ->
+        #notesSoup.getEntry(0)
+        #.then (noteFrame) ->
+
+          #console.log "notes entry:"
+          #console.log noteFrame
+          
+      #, 1000
+
+    #.catch (err) ->
+      #console.log "Error processing:"
+      #console.log err
     
+      #errMessage = err.message.substr(0,60) + "..."
+      
+      #newtonDevice.notifyUser "Error",
+        #"Sorry, something went wrong. Process failed with error '#{errMessage}'"
     
-    return
+    #return
   
     #console.log '###################################################'
 

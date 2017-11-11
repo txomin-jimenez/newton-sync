@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDBackupSoupDone.js",
+  "sourceRoot": "../../../src/commands/soups/",
+  "sources": [
+    "kDBackupSoupDone.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;AAAA;AAAA,MAAA,8BAAA;IAAA;;;EAWA,YAAA,GAAsB,OAAA,CAAQ,kBAAR;;EAEtB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,gBAAC,CAAA,EAAD,GAAK;;+BAEL,EAAA,GAAI,gBAAgB,CAAC;;+BACrB,IAAA,GAAM;;+BACN,MAAA,GAAQ;;IAEK,0BAAA;MACX,mDAAA,SAAA;IADW;;;;KARiC;AAbhD"
+}

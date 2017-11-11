@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDOpCanceledAck.js",
+  "sourceRoot": "../../../src/commands/general/",
+  "sources": [
+    "kDOpCanceledAck.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;AAAA;AAAA,MAAA,6BAAA;IAAA;;;EAUA,YAAA,GAAoB,OAAA,CAAQ,kBAAR;;EAEpB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,eAAC,CAAA,EAAD,GAAK;;8BAEL,EAAA,GAAI,eAAe,CAAC;;8BACpB,IAAA,GAAM;;8BACN,MAAA,GAAQ;;IAEK,yBAAA;MACX,kDAAA,SAAA;IADW;;;;KARgC;AAZ/C"
+}

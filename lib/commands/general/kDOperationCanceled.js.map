@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDOperationCanceled.js",
+  "sourceRoot": "../../../src/commands/general/",
+  "sources": [
+    "kDOperationCanceled.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;;AAAA;AAAA,MAAA,iCAAA;IAAA;;;EAYA,YAAA,GAAoB,OAAA,CAAQ,kBAAR;;EAEpB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,mBAAC,CAAA,EAAD,GAAK;;kCAEL,EAAA,GAAI,mBAAmB,CAAC;;kCACxB,IAAA,GAAM;;kCACN,MAAA,GAAQ;;IAEK,6BAAA;MACX,sDAAA,SAAA;IADW;;;;KARoC;AAdnD"
+}

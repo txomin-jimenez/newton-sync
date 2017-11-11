@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDHello.js",
+  "sourceRoot": "../../../src/commands/general/",
+  "sources": [
+    "kDHello.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;AAAA;AAAA,MAAA,qBAAA;IAAA;;;EAWA,YAAA,GAAsB,OAAA,CAAQ,kBAAR;;EAEtB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,OAAC,CAAA,EAAD,GAAK;;sBAEL,EAAA,GAAI,OAAO,CAAC;;sBACZ,IAAA,GAAM;;sBACN,MAAA,GAAQ;;IAEK,iBAAA;MACX,0CAAA,SAAA;IADW;;sBAGb,cAAA,GAAgB,SAAC,UAAD;aACd;IADc;;;;KAXqB;AAbvC"
+}

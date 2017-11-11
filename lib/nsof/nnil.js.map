@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "nnil.js",
+  "sourceRoot": "../../src/nsof/",
+  "sources": [
+    "nnil.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA;EAAA,MAAM,CAAC,OAAP,GAKE;IAAA,MAAA,EAAQ,SAAA;aAEF,IAAA,MAAA,CAAO,IAAP,EAAY,KAAZ;IAFE,CAAR;IAGA,MAAA,EAAQ,SAAC,MAAD;AAEN,aACE;QAAA,KAAA,EAAO,IAAP;QACA,SAAA,EAAW,CADX;;IAHI,CAHR;;AALF"
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDSynchronize.js",
+  "sourceRoot": "../../../src/commands/sync_backup/",
+  "sources": [
+    "kDSynchronize.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;AAAA;AAAA,MAAA,2BAAA;IAAA;;;EAUA,YAAA,GAAsB,OAAA,CAAQ,kBAAR;;EAEtB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,aAAC,CAAA,EAAD,GAAK;;4BAEL,EAAA,GAAI,aAAa,CAAC;;4BAClB,IAAA,GAAM;;4BACN,MAAA,GAAQ;;IAEK,uBAAA;MACX,gDAAA,SAAA;IADW;;;;KAR8B;AAZ7C"
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDSendSoup.js",
+  "sourceRoot": "../../../src/commands/soups/",
+  "sources": [
+    "kDSendSoup.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;;;;;;;AAAA;AAAA,MAAA,wBAAA;IAAA;;;EAiBA,YAAA,GAAoB,OAAA,CAAQ,kBAAR;;EAEpB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,UAAC,CAAA,EAAD,GAAK;;yBAEL,EAAA,GAAI,UAAU,CAAC;;yBACf,IAAA,GAAM;;yBACN,MAAA,GAAQ;;IAEK,oBAAA;MACX,6CAAA,SAAA;IADW;;;;KAR2B;AAnB1C"
+}

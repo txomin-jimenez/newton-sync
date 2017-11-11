@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDAddedID.js",
+  "sourceRoot": "../../../src/commands/soups/",
+  "sources": [
+    "kDAddedID.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;;AAAA;AAAA,MAAA,6BAAA;IAAA;;;EAaA,YAAA,GAAoB,OAAA,CAAQ,kBAAR;;EACpB,IAAA,GAAoB,OAAA,CAAQ,YAAR;;EAEpB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,SAAC,CAAA,EAAD,GAAK;;wBAEL,EAAA,GAAI,SAAS,CAAC;;wBACd,IAAA,GAAM;;wBACN,MAAA,GAAQ;;IAEK,mBAAA;MACX,4CAAA,SAAA;IADW;;wBAGb,cAAA,GAAgB,SAAC,UAAD;MACd,IAAC,CAAA,MAAD,GAAU,UAAU,CAAC,YAAX,CAAwB,CAAxB;aACV,IAAC,CAAA,IAAD,GAAQ,UAAU,CAAC,YAAX,CAAwB,CAAxB;IAFM;;;;KAXuB;AAhBzC"
+}

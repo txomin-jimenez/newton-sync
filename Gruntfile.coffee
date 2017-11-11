@@ -3,11 +3,20 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
     coffee:
       dist:
+        options: {
+          sourceMap: true
+        },      
         files: [{
           expand: true,
           cwd: 'src'
           src: './**/*.coffee',
           dest: 'lib'
+          ext: '.js'
+        },{
+          expand: true,
+          cwd: 'server'
+          src: './**/*.coffee',
+          dest: 'server'
           ext: '.js'
         }]
     coffeelint:
@@ -32,7 +41,7 @@ module.exports = (grunt) ->
           module: true
           node: true
     watch:
-      files: ['src/**/*.coffee', 'test/**/*.js']
+      files: ['src/**/*.coffee', 'server/**/*.coffee', 'test/**/*.js']
       tasks: [
         'coffee'
         'coffeelint'

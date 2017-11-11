@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "newton-sync.js",
+  "sourceRoot": "../src/",
+  "sources": [
+    "newton-sync.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA;EAAA,MAAM,CAAC,OAAP,GAEE;IAAA,MAAA,EAAQ,OAAA,CAAQ,cAAR,CAAR;IACA,YAAA,EAAc,OAAA,CAAQ,iBAAR,CADd;IAEA,YAAA,EAAc,OAAA,CAAQ,0BAAR,CAFd;IAGA,IAAA,EAAM,OAAA,CAAQ,QAAR,CAHN;;AAFF"
+}

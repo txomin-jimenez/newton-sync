@@ -13,5 +13,7 @@ pids
 logs
 results
 
+/src/**/*.js
+
 npm-debug.log
 node_modules

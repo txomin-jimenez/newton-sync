@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDGetStoreNames.js",
+  "sourceRoot": "../../../src/commands/soups/",
+  "sources": [
+    "kDGetStoreNames.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;AAAA;AAAA,MAAA,oCAAA;IAAA;;;EASA,YAAA,GAAoB,OAAA,CAAQ,kBAAR;;EACpB,KAAA,GAAoB,OAAA,CAAQ,aAAR;;EAEpB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,eAAC,CAAA,EAAD,GAAK;;8BAEL,EAAA,GAAI,eAAe,CAAC;;8BACpB,IAAA,GAAM;;8BACN,MAAA,GAAQ;;IAEK,yBAAA;MACX,kDAAA,SAAA;IADW;;;;KARgC;AAZ/C"
+}

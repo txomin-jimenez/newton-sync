@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "nkcharacter.js",
+  "sourceRoot": "../../src/nsof/",
+  "sources": [
+    "nkcharacter.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA;EAAA,MAAM,CAAC,OAAP,GAEE;IAAA,MAAA,EAAQ,SAAC,KAAD;AACN,YAAU,IAAA,KAAA,CAAM,uCAAN;IADJ,CAAR;IAEA,MAAA,EAAQ,SAAC,MAAD;AAEN,aACE;QAAA,KAAA,EAAO,MAAM,CAAC,YAAP,CAAoB,MAAO,CAAA,CAAA,CAA3B,CAAP;QACA,SAAA,EAAW,CADX;;IAHI,CAFR;;AAFF"
+}

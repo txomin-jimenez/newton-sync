@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDInitiateDocking.js",
+  "sourceRoot": "../../../src/commands/session/",
+  "sources": [
+    "kDInitiateDocking.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;;;AAAA;AAAA,MAAA,+BAAA;IAAA;;;EAaA,YAAA,GAAsB,OAAA,CAAQ,kBAAR;;EAEtB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,iBAAC,CAAA,EAAD,GAAK;;gCAEL,EAAA,GAAI,iBAAiB,CAAC;;gCACtB,IAAA,GAAM;;gCACN,MAAA,GAAQ;;IAEK,2BAAA;MACX,oDAAA,SAAA;IADW;;gCAGb,YAAA,GAAc,SAAA;AACZ,UAAA;MAAA,IAAA,GAAW,IAAA,MAAA,CAAO,CAAP;MACX,IAAI,CAAC,aAAL,CAAmB,IAAC,CAAA,MAApB,EAA2B,CAA3B;MAEA,IAAI,CAAC,aAAL,CAAmB,IAAC,CAAA,IAAI,CAAC,WAAzB,EAAqC,CAArC;aACA;IALY;;;;KAXiC;AAfjD"
+}

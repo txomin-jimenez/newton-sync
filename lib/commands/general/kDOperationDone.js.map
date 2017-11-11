@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kDOperationDone.js",
+  "sourceRoot": "../../../src/commands/general/",
+  "sources": [
+    "kDOperationDone.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;;;;;;AAAA;AAAA,MAAA,6BAAA;IAAA;;;EAcA,YAAA,GAAoB,OAAA,CAAQ,kBAAR;;EAEpB,MAAM,CAAC,OAAP,GAAuB;;;IAErB,eAAC,CAAA,EAAD,GAAK;;8BAEL,EAAA,GAAI,eAAe,CAAC;;8BACpB,IAAA,GAAM;;8BACN,MAAA,GAAQ;;IAEK,yBAAA;MACX,kDAAA,SAAA;IADW;;;;KARgC;AAhB/C"
+}

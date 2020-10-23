@@ -16,7 +16,8 @@ $ npm install --save newton-sync
 
 ## Main Features
 
-<img align="right", src="media/dock-capture.png">
+![Dock Capture](media/dock-capture.png)
+
 
 - NCU TCP Server
 - Session negotiation with password support
